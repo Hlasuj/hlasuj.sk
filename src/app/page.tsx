@@ -189,7 +189,7 @@ function VoterPoll({ polls, demographics, onSubmit, onAdminAccess }: { polls: Po
             </div>
             <div style={{ fontSize: 13, color: G.muted }}>{demographics.age} · {demographics.gender}</div>
             <div style={{ position: "relative" }}>
-              <button onClick={() => setShowAdmin(!showAdmin)} style={{ background: "none", border: "none", color: G.muted, cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "4px 8px" }}>⋯</button>
+              <button onClick={() => setShowAdmin(!showAdmin)} style={{ background: "none", border: "none", color: G.slate, cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "4px 8px" }}>⋯</button>
               {showAdmin && (
                 <div style={{ position: "absolute", right: 0, top: 36, background: G.white, border: `1px solid ${G.border}`, padding: 20, zIndex: 20, minWidth: 240, borderRadius: 6, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
                   <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: G.muted, marginBottom: 12 }}>Admin prístup</div>
