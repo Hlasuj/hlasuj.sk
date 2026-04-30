@@ -459,24 +459,38 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/polls')
-      .then(r => r.json())
-      .then(data => {
-        const mapped = data.map((p: any) => ({
-          id: p.id,
-          question: p.question,
-          active: p.active,
-          options: p.poll_options
-            .sort((a: any, b: any) => a.position - b.position)
-            .map((o: any) => o.text),
-          optionIds: p.poll_options
-            .sort((a: any, b: any) => a.position - b.position)
-            .map((o: any) => o.id),
-        }));
-        setPolls(mapped);
-        setLoading(false);
-      });
-  }, []);
+  Promise.all([
+    fetch('/api/polls').then(r => r.json()),
+    fetch('/api/votes').then(r => r.json()),
+  ]).then(([pollsData, votesData]) => {
+    const mapped = pollsData.map((p: any) => ({
+      id: p.id,
+      question: p.question,
+      active: p.active,
+      options: p.poll_options
+        .sort((a: any, b: any) => a.position - b.position)
+        .map((o: any) => o.text),
+      optionIds: p.poll_options
+        .sort((a: any, b: any) => a.position - b.position)
+        .map((o: any) => o.id),
+    }));
+    setPolls(mapped);
+
+    const mappedVotes = votesData.map((v: any) => ({
+      pollId: v.poll_id,
+      optionIndex: mapped.find((p: any) => p.id === v.poll_id)
+        ?.optionIds?.indexOf(v.option_id) ?? 0,
+      timestamp: new Date(v.timestamp).getTime(),
+      country: v.country || 'SK',
+      device: v.device_type || 'desktop',
+      lang: v.browser_lang || 'sk',
+      age: v.age_group,
+      gender: v.gender,
+    }));
+    setVotes(mappedVotes);
+    setLoading(false);
+  });
+}, []);
 
   async function handleSubmit(answers: Record<string, number>) {
     const poll = polls.find(p => p.id === Object.keys(answers)[0]);
