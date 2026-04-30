@@ -30,6 +30,7 @@ interface Poll {
   id: string;
   question: string;
   options: string[];
+  optionIds?: string[];
   active: boolean;
 }
 
@@ -453,16 +454,51 @@ export default function Home() {
   const [view, setView] = useState("voter");
   const [step, setStep] = useState("gate");
   const [demographics, setDemographics] = useState<Demographics | null>(null);
-  const [polls, setPolls] = useState<Poll[]>(INITIAL_POLLS);
-  const [votes, setVotes] = useState<Vote[]>(MOCK_VOTES);
+  const [polls, setPolls] = useState<Poll[]>([]);
+  const [votes, setVotes] = useState<Vote[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  function handleGate(age: string, gender: string) { setDemographics({ age, gender }); setStep("poll"); }
-  function handleSubmit(answers: Record<string, number>) {
-    Object.entries(answers).forEach(([pollId, optionIndex]) =>
-      setVotes((v) => [...v, { pollId, optionIndex, ...demographics!, timestamp: Date.now(), country: "SK", device: "desktop", lang: "sk" }])
-    );
+  useEffect(() => {
+    fetch('/api/polls')
+      .then(r => r.json())
+      .then(data => {
+        const mapped = data.map((p: any) => ({
+          id: p.id,
+          question: p.question,
+          active: p.active,
+          options: p.poll_options
+            .sort((a: any, b: any) => a.position - b.position)
+            .map((o: any) => o.text),
+          optionIds: p.poll_options
+            .sort((a: any, b: any) => a.position - b.position)
+            .map((o: any) => o.id),
+        }));
+        setPolls(mapped);
+        setLoading(false);
+      });
+  }, []);
+
+  async function handleSubmit(answers: Record<string, number>) {
+    const poll = polls.find(p => p.id === Object.keys(answers)[0]);
+    for (const [pollId, optionIndex] of Object.entries(answers)) {
+      const p = polls.find(p => p.id === pollId) as any;
+      await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          poll_id: pollId,
+          option_id: p.optionIds[optionIndex],
+          age_group: demographics?.age,
+          gender: demographics?.gender,
+        }),
+      });
+    }
     setStep("done");
   }
+
+  function handleGate(age: string, gender: string) { setDemographics({ age, gender }); setStep("poll"); }
+
+  if (loading) return <div style={{ minHeight: "100vh", background: "#FAFBFC", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", color: "#6B7280" }}>Načítavam...</div>;
 
   if (view === "admin") return <AdminShell polls={polls} setPolls={setPolls} votes={votes} onBack={() => { setView("voter"); setStep("gate"); }} />;
   if (step === "gate") return <DemographicGate onConfirm={handleGate} />;
