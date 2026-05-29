@@ -32,6 +32,7 @@ interface Poll {
   options: string[];
   optionIds?: string[];
   active: boolean;
+  collect_phone?: boolean;
 }
 
 interface Vote {
@@ -158,9 +159,10 @@ function DemographicGate({ onConfirm }: { onConfirm: (age: string, gender: strin
   );
 }
 
-function VoterPoll({ polls, demographics, onSubmit, onAdminAccess }: { polls: Poll[]; demographics: Demographics; onSubmit: (answers: Record<string, number>) => void; onAdminAccess: () => void }) {
+function VoterPoll({ polls, demographics, onSubmit, onAdminAccess }: { polls: Poll[]; demographics: Demographics; onSubmit: (answers: Record<string, number>, phones: Record<string, string>) => void; onAdminAccess: () => void }) {
   const active = polls.filter((p) => p.active);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [phones, setPhones] = useState<Record<string, string>>({});
   const [showAdmin, setShowAdmin] = useState(false);
   const [pass, setPass] = useState("");
   const [passErr, setPassErr] = useState(false);
@@ -222,10 +224,23 @@ function VoterPoll({ polls, demographics, onSubmit, onAdminAccess }: { polls: Po
                 <button key={oi} className={`sp-option ${answers[poll.id] === oi ? "selected" : ""}`} onClick={() => setAnswers({ ...answers, [poll.id]: oi })}>{opt}</button>
               ))}
             </div>
+            {poll.collect_phone && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ fontSize: 12, color: G.muted, marginBottom: 8 }}>Telefónne číslo <span style={{ color: G.border }}>(nepovinné)</span></div>
+                <input
+                  type="tel"
+                  value={phones[poll.id] || ""}
+                  onChange={(e) => setPhones({ ...phones, [poll.id]: e.target.value })}
+                  placeholder="+421..."
+                  className="sp-input"
+                  style={{ maxWidth: 240 }}
+                />
+              </div>
+            )}
           </div>
         ))}
         {active.length > 0 && (
-          <button className="sp-btn-primary" disabled={!allDone} onClick={() => allDone && onSubmit(answers)} style={{ width: "100%", padding: "18px", fontSize: 15 }}>
+          <button className="sp-btn-primary" disabled={!allDone} onClick={() => allDone && onSubmit(answers, phones)} style={{ width: "100%", padding: "18px", fontSize: 15 }}>
             {allDone ? "Odoslať hlasovanie →" : `Odpovedzte na všetky otázky (${answered}/${total})`}
           </button>
         )}
@@ -340,16 +355,40 @@ function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Pol
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Poll | null>(null);
   const [newOpt, setNewOpt] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  function startNew() { const d = { id: "p" + Date.now(), question: "", options: [], active: false }; setDraft(d); setEditId(d.id); }
+  const IS_NEW = draft && !polls.find((p) => p.id === draft.id);
+
+  function startNew() { const d = { id: "__new__", question: "", options: [], active: false }; setDraft(d); setEditId(d.id); }
   function startEdit(p: Poll) { setDraft({ ...p, options: [...p.options] }); setEditId(p.id); }
   function cancel() { setEditId(null); setDraft(null); setNewOpt(""); }
-  function save() {
+
+  async function save() {
     if (!draft || !draft.question.trim() || draft.options.length < 2) return;
-    const exists = polls.find((p) => p.id === draft.id);
-    setPolls(exists ? polls.map((p) => (p.id === draft.id ? draft : p)) : [...polls, draft]);
+    setSaving(true);
+    if (IS_NEW) {
+      const res = await fetch('/api/polls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: draft.question, options: draft.options, active: draft.active, collect_phone: draft.collect_phone ?? false }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        const newPoll = { ...draft, id: data.id };
+        setPolls([newPoll, ...polls]);
+      }
+    } else {
+      await fetch(`/api/polls/${draft.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: draft.question, options: draft.options, active: draft.active, collect_phone: draft.collect_phone ?? false }),
+      });
+      setPolls(polls.map((p) => (p.id === draft.id ? draft : p)));
+    }
+    setSaving(false);
     cancel();
   }
+
   function addOpt() { if (!newOpt.trim() || !draft) return; setDraft({ ...draft, options: [...draft.options, newOpt.trim()] }); setNewOpt(""); }
   function removeOpt(i: number) { if (!draft) return; setDraft({ ...draft, options: draft.options.filter((_, j) => j !== i) }); }
   function moveOpt(i: number, d: number) {
@@ -359,8 +398,22 @@ function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Pol
     [opts[i], opts[j]] = [opts[j], opts[i]];
     setDraft({ ...draft, options: opts });
   }
-  function toggle(id: string) { setPolls(polls.map((p) => (p.id === id ? { ...p, active: !p.active } : p))); }
-  function del(id: string) { setPolls(polls.filter((p) => p.id !== id)); }
+
+  async function toggle(id: string) {
+    const poll = polls.find((p) => p.id === id);
+    if (!poll) return;
+    await fetch(`/api/polls/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !poll.active }),
+    });
+    setPolls(polls.map((p) => (p.id === id ? { ...p, active: !p.active } : p)));
+  }
+
+  async function del(id: string) {
+    await fetch(`/api/polls/${id}`, { method: 'DELETE' });
+    setPolls(polls.filter((p) => p.id !== id));
+  }
 
   const canSave = draft && draft.question.trim() && draft.options.length >= 2;
   const adminInput = { width: "100%", padding: "10px 14px", background: "#0a0a14", border: "1px solid #1a1a2e", color: "#ddd", fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", boxSizing: "border-box" as const };
@@ -376,7 +429,7 @@ function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Pol
       </div>
       {editId && draft && (
         <div style={{ background: "#0a0a14", border: "1px solid #1a1a2e", padding: 24, marginBottom: 28, borderRadius: 4 }}>
-          <div style={{ fontSize: 11, color: "#444", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16 }}>{!polls.find((p) => p.id === draft.id) ? "Nová anketa" : "Upraviť anketu"}</div>
+          <div style={{ fontSize: 11, color: "#444", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16 }}>{IS_NEW ? "Nová anketa" : "Upraviť anketu"}</div>
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 10, color: "#444", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>Otázka</div>
             <input value={draft.question} onChange={(e) => setDraft({ ...draft, question: e.target.value })} placeholder="Zadajte otázku..." style={adminInput} />
@@ -397,9 +450,15 @@ function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Pol
               <button onClick={addOpt} style={{ ...adminInput, width: "auto", padding: "10px 14px", cursor: "pointer", whiteSpace: "nowrap" }}>Pridať</button>
             </div>
           </div>
+          <div style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#aaa", fontFamily: "'DM Sans', sans-serif" }}>
+              <input type="checkbox" checked={draft.collect_phone ?? false} onChange={(e) => setDraft({ ...draft, collect_phone: e.target.checked })} style={{ width: 16, height: 16, accentColor: G.blue }} />
+              Zbierať telefónne číslo (nepovinné)
+            </label>
+          </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button onClick={cancel} style={{ background: "none", border: "1px solid #2a2a3a", color: "#666", padding: "8px 16px", cursor: "pointer", fontFamily: "inherit", fontSize: 12 }}>Zrušiť</button>
-            <button onClick={save} disabled={!canSave} style={{ background: canSave ? G.blue : "#1a1a2e", border: "none", color: canSave ? "#fff" : "#444", padding: "8px 20px", cursor: canSave ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: 12, fontWeight: 500 }}>Uložiť</button>
+            <button onClick={save} disabled={!canSave || saving} style={{ background: canSave && !saving ? G.blue : "#1a1a2e", border: "none", color: canSave && !saving ? "#fff" : "#444", padding: "8px 20px", cursor: canSave && !saving ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: 12, fontWeight: 500 }}>{saving ? "Ukladám..." : "Uložiť"}</button>
           </div>
         </div>
       )}
@@ -467,6 +526,7 @@ export default function Home() {
       id: p.id,
       question: p.question,
       active: p.active,
+      collect_phone: p.collect_phone ?? false,
       options: p.poll_options
         .sort((a: any, b: any) => a.position - b.position)
         .map((o: any) => o.text),
@@ -492,8 +552,7 @@ export default function Home() {
   });
 }, []);
 
-  async function handleSubmit(answers: Record<string, number>) {
-    const poll = polls.find(p => p.id === Object.keys(answers)[0]);
+  async function handleSubmit(answers: Record<string, number>, phones: Record<string, string>) {
     for (const [pollId, optionIndex] of Object.entries(answers)) {
       const p = polls.find(p => p.id === pollId) as any;
       await fetch('/api/vote', {
@@ -504,6 +563,7 @@ export default function Home() {
           option_id: p.optionIds[optionIndex],
           age_group: demographics?.age,
           gender: demographics?.gender,
+          phone: phones[pollId] || null,
         }),
       });
     }

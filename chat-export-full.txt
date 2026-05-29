@@ -1,0 +1,400 @@
+Chat Export — hlasuj.sk project (full history)
+Exported: 2026-05-29
+============================================================
+
+Michal: I have a dream
+
+Claude: Tell me about it.
+
+Michal: I need to create a poll website
+
+Claude: What kind of poll — one-time voting, ongoing, multiple questions, results visible to voters?
+
+Michal: Ongoing multiple questions with result for now only me
+
+Claude: So a private poll site where you're the only one who sees results. A few more questions:
+1. Do voters need to log in / authenticate, or is it open to anyone with the link?
+2. One poll at a time or multiple active polls simultaneously?
+3. Should votes be anonymous or tracked per user?
+
+Michal: Yeah, only I want to see results but I want to propagate them after consolidation
+
+Claude: Got it. So voters submit anonymously, you review results privately, then publish a summary when ready.
+How do you want to build this — a hosted solution (quick, no infra), or custom code you control? And do you have a backend/hosting preference, or should I suggest something?
+
+Michal: 1. No need to register
+
+Claude: So fully open voting, no auth for voters, just a secret results page for you.
+For the stack — are you thinking a simple static frontend + some backend service, or do you want me to build a full artifact now with everything self-contained (using localStorage or a small backend)?
+
+Michal: 1. Possibly
+
+Claude: Got it — multiple active polls at once, possibly.
+Last question: hosting preference? Options:
+1. Supabase (free tier, easy setup, real DB) — good for persistent votes
+2. Firebase — similar, Google ecosystem
+3. Self-hosted — your own server
+4. Artifact-only demo first — in-browser prototype to validate the concept, then we wire up a real backend
+Which direction?
+
+Michal: 1. No track but some details we need to have
+
+Claude: What details do you want to capture per vote? Things like:
+- Timestamp
+- Country / rough location
+- Browser/device type
+- Something else?
+
+Michal: One more detail, it should be Slovak political poll
+
+Claude: Perfect context — this is for Konzistentné Slovensko then.
+So the setup is: public anonymous voting, multiple polls, captures some metadata per vote, private results dashboard for you only.
+What metadata matters most to you? My guess for a political poll:
+- Timestamp
+- Rough location (region/kraj)
+- Age group (self-reported)
+- Maybe gender (self-reported)
+Does that fit, or different fields?
+
+Michal: I don't want GA because of cookies, but I don't want to ask for this question, how can we do it?
+
+Claude: You can infer some metadata from the HTTP request without asking or using cookies:
+- Timestamp — server-side, exact
+- Country/region — from IP via a free geolocation API (ip-api.com or similar), then discard the IP
+- Browser/device type — from User-Agent string
+- Language — from Accept-Language header (good proxy for Slovak vs diaspora voters)
+You never store the IP itself, just the derived data. No cookies, no consent banner needed, GDPR-friendly.
+Does that work for you?
+
+Michal: Yes for now
+
+Claude: Good. So the plan:
+- Public voting, no login
+- Multiple simultaneous polls
+- Per vote: timestamp, country, device type, browser language (all server-side, no IP stored)
+- Private results dashboard (password or secret URL)
+- Slovak political context
+Stack suggestion: Next.js + Supabase. Free tier covers this easily, you get a real DB, and it's deployable to Vercel in minutes.
+Want me to start with a full prototype, or spec out the DB schema and API routes first?
+
+Michal: All the user details are only for results and graphs
+
+Claude: Understood — metadata is purely for slicing results in your dashboard (e.g. votes by region, by device, by language). Voters see nothing of it.
+Start with prototype or schema first?
+
+Michal: What do you suggesting?
+
+Claude: Schema first — 30 minutes of planning saves hours of refactoring. Once the data model is solid, the prototype flows naturally.
+Shall I draft the schema now?
+
+Michal: And where we will be hosting it, cheapest in slovakia or aws cloud?
+
+Claude: For this scale (political poll, not millions of votes), cheapest reliable option:
+Vercel (frontend) + Supabase (DB) — both free tier, no credit card needed to start. Servers are EU-based so GDPR is clean. Zero cost until you scale.
+If you outgrow free tier, Supabase Pro is $25/month — still cheaper than any Slovak hosting + AWS combo for this use case.
+Slovak hosting isn't worth it unless you have a specific legal requirement to store data in SK. Do you?
+
+Michal: I am not sure of it, so let's try create something
+
+Claude: Let's go. Starting with the schema. [Built React prototype with voter UI and admin dashboard.]
+
+Michal: I want to have some future data backed up but without personal data
+
+Claude: Smart. So the backup contains votes + metadata (timestamp, country, device, language) but never anything that could identify a person — no IP, no fingerprint, no session ID.
+For the backup strategy: Supabase built-in automatic daily backups + one-click JSON export from admin panel.
+Should I add the export button to the prototype now, or move on to the Supabase schema first?
+
+Michal: I don't want export, I just need to see it in a graph
+
+Claude: Got it — no export, just visualize everything in the dashboard.
+So the admin dashboard needs graphs for:
+- Vote distribution per question
+- Votes over time (timeline)
+- Breakdown by country / device / language
+Anything else you want to see, or shall I upgrade the dashboard with proper charts now?
+
+Michal: What do you mean by proper charts?
+
+Claude: The current bars are just CSS divs — functional but basic. I meant switching to a real chart library (Recharts) for things like line chart for votes over time, pie/donut for country/device breakdown.
+But honestly for this use case the CSS bars are fine. The only thing missing is the timeline view.
+Want me to just add a votes-over-time line chart and leave the rest as is?
+
+Michal: Ok, charts we will handle later
+
+Claude: Fine. So next logical step is the Supabase schema. Ready?
+
+Michal: Now I have to have a page/app where we can do this
+
+Claude: You mean a place to manage the polls themselves — create, edit, activate/deactivate questions? Basically a poll management page in the admin area?
+
+Michal: Yes
+
+Claude: Got it. So the admin area needs two sections:
+1. Poll manager — create/edit/delete polls and their options, activate/deactivate
+2. Results dashboard — what we already built
+Should I add the poll manager to the existing prototype now?
+
+Michal: Not yet
+
+Claude: OK, when you're ready just say the word.
+
+Michal: Now
+
+Claude: [Added poll manager with two tabs — Výsledky and Ankety. In the Ankety tab you can create new polls, edit questions and options, reorder options, activate/deactivate, and delete. Only active polls show on the voter side.]
+
+Michal: Najs
+
+Claude: Ideme na schému. [Outlined polls, poll_options, votes tables.]
+
+Michal: Nie nejdeme este na schemu
+
+Claude: Ok, čo ďalej?
+
+Michal: Mame myslienku, a teraz vies checkovat slovenske media aby si vedel vymysliet najrelevantnejsie otazky?
+
+Claude: Viem. [Searched Slovak media and suggested poll questions on economy, housing, political trust, correspondence voting, new parties.]
+
+Michal: Super, a teraz to urob na zaklade nejakych vekovych kategorii
+
+Claude: Myslíš čo? Dve možnosti:
+1. Otázky prispôsobené podľa veku
+2. Respondent zadá vekový range na začiatku a výsledky sa slicujú podľa veku v dashboarde
+
+Michal: Myslim moznost 2
+
+Claude: Jasné. Vekové kategórie: 18–24, 25–34, 35–44, 45–54, 55+. Vyhovuje?
+
+Michal: Moze byt, a otazky podla toho ze ako fo budes checkovat
+
+Claude: Myslíš, že otázky sa budú meniť podľa toho, aký vek respondent vyberie?
+
+Michal: Ano, ale nastavime schedule?
+
+Claude: [Explained scheduling concept — dates of activation/deactivation]. Začneme s vekový gate + rôzne otázky podľa veku, scheduling pridáme ako druhý krok?
+
+Michal: Nie scheduling, aky den taka otazka
+
+Claude: Rozumiem — rotácia otázok podľa dňa v týždni. Pondelok = otázky o ekonomike, utorok = otázky o korupcii, atď. Kombinované s vekom?
+
+Michal: Hej nieco take
+
+Claude: Jasné. V admin poll manageri pribudne: Deň v týždni + Veková skupina pre každú anketu. Voter flow: vyberie vek → systém zobrazí otázky platné pre dnešný deň + jeho vekový range.
+
+Michal: A ked budeme mat pristup ku github budes vediet ponukat taketo otazky na dennej baze?
+
+Claude: Nie priamo — nemám trvalý prístup. Ale cron job na Verceli + Claude API integrácia, ktorá raz týždenne navrhne nové otázky — ty schváliš manuálne. Logika rotácie beží automaticky na serveri.
+
+Michal: Dobre toto budeme riesit neskor
+
+Claude: Ok. Takže teraz zapracujeme: vekový gate + otázky podľa veku/dňa + admin nastavenie dňa/veku.
+
+Michal: 1. Musis vyriesit ty
+
+Claude: Jasné — v admin poll manageri pri každej ankete pribudnú polia "Deň v týždni" a "Veková skupina".
+
+Michal: Skus este urobit research na tuto temu ci by to mali zmysel
+
+Claude: [Searched research on poll segmentation.] Záver: vekové segmentovanie je štandardná prax, ale denná rotácia je problém pre porovnateľnosť dát. Lepšia alternatíva: kampane — jedna téma 7–14 dní.
+
+Michal: Nie, urob podla prieskumu zatial
+
+Claude: Takže zatiaľ klasicky — vekový gate na začiatku, rovnaké otázky pre všetkých, výsledky rozdelené podľa veku. Žiadna rotácia.
+
+Michal: Este skusime podla pohlavia?
+
+Claude: Má to zmysel — pohlavie je štandardná premenná v politickom prieskume. Pridáme: Muž / Žena / Iné / Nechcem uviesť.
+
+Michal: Este nemusis, vieme urobit nejake denne reklamy na social podla tohto?
+
+Claude: Dobrá myšlienka — cielené social media reklamy podľa demografiky. Ale to je samostatná téma — analytics + ad targeting. Poznačím si to.
+
+Michal: Mne nejde o vysledky len o to zvyditelnit normalny poll
+
+Claude: Myslíš že každý deň zdieľaš na social nový poll. Denná rotácia nie je pre dáta, ale pre social media obsah.
+
+Michal: Nie, nie je to len denna rotacia na socialnych sietiach. Mne nejde o socialne siete len o propagovanie
+
+Claude: Takže chceš vedieť ako propagovať anketu všeobecne — email, web stránka, QR kód na plagátoch, word of mouth?
+
+Michal: Ano, ale vsetko co navrhujes potrebuje peniaze a socialne siete su "kvazi" zadarmo
+
+Claude: Presne. Organická propagácia cez social — Facebook, Instagram, TikTok. Zdieľaš link na anketu, ľudia hlasujú zadarmo.
+
+Michal: Jedna otazka ale tak jak sme sa dohodli bude trvat tyzden. Ale kazdy den nova otazka. A to nejako propagovane na SN
+
+Claude: Jasné — každý deň nový post na social s tou istou otázkou ale iným framing-om. A v poste zmienišaj výsledky predchádzajúcich. Napríklad: "Dnes sa pýtame na korupciu (Včera 73% z vás povedalo že bývanie je problém č.1)". Každý deň nový dôvod kliknúť.
+
+Michal: Hej chcem, to si pamataj
+
+Claude: [Saved memory: admin panel generates daily social posts with previous day's results referenced.]
+
+Michal: Pockaj, este musime PR vymysliet
+
+Claude: Povedz viac — myslíš PR stratégiu pre propagáciu ankety, alebo pre KS všeobecne?
+
+Michal: Dobavime sa zajtra, idem spat, pamätaj si toto budeme pokracovat, ked tak urob MD
+
+Claude: [Created poll app notes MD file.] Dobru noc. Zajtra pokračujeme s PR a potom dokódujeme zvyšok.
+
+Michal: Okej podme pokracovat
+
+Claude: Kde začíname — PR stratégia alebo kód (vekový gate + pohlavie)?
+
+Michal: pr
+
+Claude: [Searched Slovak political social media research.]
+Kľúčové zistenia:
+- Instagram dominuje (PS má najvyšší počet interakcií)
+- Strany bez silných osobností majú slabú online aktivitu
+- Priestor pre novú tvár existuje
+
+PR stratégia:
+- Instagram ako primárny kanál
+- Obsah o témach, nie o lídrovi
+- Anketa ako PR hook — keď nazbieraš 500–1000 hlasov, pošleš tlačovú správu novinárm
+
+Michal: Ale my nie sme politicka strana len poll stranka
+
+Claude: Ospravedlňujem sa za zmätenie. PR stratégia pre poll stránku ide inak — propagujeme samotnú anketu ako zaujímavý obsah. "Čo si myslia Slováci o korupcii? Hlasuj anonymne →"
+
+Michal: Ano takto sa da pracovat, nechceme sa angazovat len vidiet co si slovaci myslia a zobrazovat to inym
+
+Claude: Perfektné pozicionovanie — neutrálna platforma pre názory Slovákov. Žiadna agenda, len dáta. To má aj PR výhodu: médiá dôverujú neutrálnym zdrojom. Keď nazbieraš dáta, môžeš ich ponúknuť novinárom ako "prieskum verejnej mienky".
+
+Michal: Urcite nie, to je uplne iny smer [re: KS connection]
+
+Claude: Dobre, takže sú to dva samostatné projekty:
+1. Poll stránka — neutrálna, žiadna politická väzba
+2. KS — politická strana, samostatný projekt
+Pre poll stránku potrebujeme názov a branding.
+
+Michal: Zabudnime teraz na KS
+
+Claude: Ok. Fokus na poll stránku. Návrhy: Hlasuj.sk, PulzSK, SlovakPulse.com. Môj tip: PulzSK alebo SlovakPulse.com.
+
+Michal: Slovakpulse vyzera dobre, skusme zatial pracovat s tym ale nechame to otvorene pre zmeny
+
+Claude: Dobre, SlovakPulse je pracovný názov. [Added demographic gate + gender selection. Rebranded to SlovakPulse with admin password sp2024admin.]
+
+Michal: Super, len urobme viac sexy design pre web stranku
+
+Claude: Vizuálny štýl — svetlý/moderný alebo tmavý + modrá?
+
+Michal: Tmavá + modrá
+
+Claude: [Kompletný redesign — biela, čistá voter strana s Playfair Display serif, DM Sans, pill-shaped chips, progress bar, fade-in animácie. Tmavý admin s navy/blue akcentmi.]
+
+Michal: Mas connector aj na proton.me ci len na gmail?
+
+Claude: Len Gmail a Microsoft 365. Proton nemá connector.
+
+Michal: Vies urobit?
+
+Claude: Nie priamo — MCP connectory sú tretie strany alebo Anthropic.
+
+Michal: Aby si mal pristup ked tak k FAQ a vedel draftovat odpovede
+
+Claude: Najjednoduchšie: napíšeš mi FAQ/kontext priamo do konverzácie a ja ti zadraftujem odpovede. Alebo nový Gmail + Gmail connector.
+
+Michal: Nechcel som kopieovat faq, ak vytvorime novy gmail vies to urobit automaticky?
+
+Claude: Áno, Gmail connector — prečítať email, pozrieť FAQ kontext, zadraftovať odpoveď v Gmaile. Plán: nový Gmail pre SlovakPulse → prepojiť Gmail connector → nahrať FAQ → drafting odpovedí.
+
+Michal: To by slo, len asi bude domena @gmail.com nie?
+
+Claude: Nie nutne — Gmail connector funguje aj s vlastnou doménou cez Google Workspace (~6$/mesiac). Alternatíva zadarmo: @gmail.com na začiatok.
+
+Michal: Nemam domenu ale zmenime nazov aj domenu na hlasuj.sk
+
+Claude: Dobrá voľba. [Checked availability — could not verify programmatically.] Musíš skontrolovať manuálne na websupport.sk alebo webglobe.sk.
+
+Michal: Take co sa mi pacia su obsadene
+
+Claude: Alternatívy: mojhlas.sk, hlasovnik.sk, verejnaanketa.sk, slovakvoice.com.
+
+Michal: Podme skusit vyriesit hosting a potom sa vratime k domene
+
+Claude: Hosting — plán: Vercel + Supabase.
+Vercel — hosting pre frontend (React appka). Supabase — databáza v cloude (PostgreSQL). Obe zadarmo, EU servery.
+
+Michal: Ok to znie na zaciatok super. Nie som pri pc len na telefone tak to nechame chvilku lezat
+
+Claude: [Saved memory: next steps — Vercel + Supabase setup when at PC.] V pohode, keď budeš pripravený pokračujeme.
+
+Michal: Ci by sme mohli este s demografickeho hladiska vylepsit?
+
+Claude: Napríklad: región/kraj, vzdelanie. Tieto sú dobré návrhy, vrátime sa k nim neskôr.
+
+Michal: [PR ako to propagujeme]
+
+Claude: [Searched what works for new Slovak political brands on social media.]
+Stratégia pre hlasuj.sk od nuly:
+- Fáza 1: Založ profily na Instagram, Facebook, TikTok pod "hlasujsk"
+- Fáza 2: Jedna otázka týždenne, každý deň iný uhol na tú istú otázku
+- Fáza 3: Keď nazbieraš 200–500 hlasov, pošli výsledky novinárom
+Kľúčová mechanika: každý post končí linkom, každý výsledok je shareable.
+
+Michal: Moze byt [content plan]
+
+Claude: Kedy plánuješ spustiť?
+
+Michal: Mozme aj dnes ked sa dostanem k PC a najdeme domenu, su aj nejake free?
+
+Claude: Free domény (.tk, .ml) sú nespoľahlivé a pôsobia neprofesionálne. .sk doména stojí ~5-8€/rok. Alternatíva: Vercel ti dá hlasuj.vercel.app na testovanie zadarmo.
+
+Michal: To by asi nebolo zle na prvych par tyzdnov
+
+Claude: Presne — hlasuj.vercel.app na prvé týždne validácie. Ak funguje, kúpiš doménu.
+
+Michal: ok lets go
+
+Claude: Super. Začneme s GitHubom — máš účet?
+
+Michal: nie
+
+Claude: github.com → Sign up. Daj vedieť keď máš účet.
+
+Michal: [various setup steps...]
+
+Claude: [Guided through: GitHub account creation, Node.js install, create-next-app, Supabase account, project creation, SQL schema, RLS policies, supabase.ts file, page.tsx setup, Vercel deploy, environment variables, API routes for polls/votes, connecting real data to dashboard]
+
+--- KEY MILESTONES ACHIEVED ---
+
+✅ Next.js project created with TypeScript + Tailwind
+✅ Supabase project with schema:
+   - polls (id, question, active, created_at)
+   - poll_options (id, poll_id, text, position)
+   - votes (id, poll_id, option_id, timestamp, country, device_type, browser_lang, age_group, gender)
+✅ Row Level Security enabled
+✅ App deployed to https://hlasuj-sk.vercel.app
+✅ Real votes saving to Supabase
+✅ Admin dashboard loading real data
+✅ Demographic gate (age + gender) working
+
+--- PENDING ---
+- Admin poll management saving to DB (currently in-memory)
+- Content plan for social media
+- Domain (hlasuj.sk or alternative)
+- Votes over time chart
+- Region/education demographics
+- Daily social post generator with previous day's results
+- n8n workflow: RSS → Claude → image gen → Telegram approval → publish
+- GDPR cookie consent banner (needed for AdSense/reCAPTCHA)
+- Cloudflare setup for bot protection
+- Honeypot field against bots
+
+--- TECH STACK ---
+- Frontend: Next.js 16.2.4, TypeScript, Tailwind CSS v4
+- Backend: Supabase (PostgreSQL), Vercel serverless functions
+- Hosting: Vercel (hlasuj-sk.vercel.app)
+- Admin password: sp2024admin
+
+--- BUSINESS NOTES ---
+- AdSense: ~68% revenue share, CPC model, political content pays higher CPM
+- AdSense requires GDPR cookie consent banner
+- Cloudflare Turnstile for CAPTCHA (privacy-first, free)
+- n8n self-hosted on Hetzner CX22 (~4€/month)
+- Social media automation: RSS feeds of Slovak media (SME, Denník N, Pravda, TA3) → Claude → image gen → Telegram approval → publish
+- TikTok API only allows draft upload, not auto-publish
+
+[End of chat export]

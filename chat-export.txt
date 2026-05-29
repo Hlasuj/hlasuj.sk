@@ -1,0 +1,169 @@
+Chat Export — hlasuj.sk project discussion
+Date: 2026-05-29
+============================================================
+
+Michal: Ako funguje reklama zobrazena na stranke?
+
+Claude: Claude produkty sú bez reklám — Anthropic nezobrazuje reklamy v claude.ai ani nedovoľuje inzerentom platiť za propagáciu v konverzáciách.
+Ak sa pýtaš vo všeobecnosti ako funguje display reklama na weboch (nie tu), alebo máš nejaký konkrétny kontext na mysli, upresni.
+
+Michal: Myslim ked pridame reklamy na hlasuj.sk
+
+Claude: Na hlasuj.sk máš niekoľko možností:
+- Google AdSense — najjednoduchšie. Vložíš script + <div> kam chceš reklamu, Google automaticky zobrazuje relevantné reklamy a platí ti za kliky/zobrazenia. Vhodné ak nemáš čas riešiť predaj reklamy manuálne.
+- Priamy predaj — oslovíš inzerentov priamo (napr. politické strany, NGO, médiá). Vyššie CPM, ale vyžaduje čas a dosah.
+- Programmatic (napr. Ezoic, Mediavine) — automatizovaný predaj cez aukcie, lepší yield ako AdSense, ale minimálne požiadavky na návštevnosť.
+
+Pre začiatok AdSense. Integrácia do Next.js je triviálna — next/script + AdSense kód v _app.tsx alebo layout.tsx, potom <ins> tagy kde chceš zobraziť banner.
+
+Jedna poznámka: ak zbieraš hlasy anonymne bez cookies, AdSense ti to skomplikuje — vyžaduje cookie consent banner pre GDPR. To je trochu v rozpore s tým "žiadne cookies" brandingom na stránke. Treba zvážiť či to stojí za to.
+
+Michal: Jasne
+
+Michal: A ked pridame captchu musime tiez riesit GDPR?
+
+Claude: hCaptcha a reCAPTCHA v3 — áno, obe zbierajú dáta a vyžadujú consent alebo aspoň zmienku v privacy policy.
+Ak chceš zostať čistý, pozri sa na Cloudflare Turnstile — je privacy-first, nesleduje používateľov, GDPR problém je minimálny. A je zadarmo.
+
+Michal: Lenze captcha asi bude potrebna aby sme tam nemali hlasy od botov, ci?
+
+Claude: Áno, ale captcha nie je jediná možnosť. Čo máš teraz:
+- jeden hlas per session (žiadne cookies = ľahko obísť)
+- žiadny rate limiting
+
+Jednoduchšie riešenia proti botom bez captcha:
+- Honeypot field — skryté pole vo formulári, boti ho vyplnia, ľudia nie. Nulový friction, žiadne GDPR.
+- Rate limiting na serveri — podľa IP (Supabase/Vercel to zvládnu natívne). IP nezapisuješ, len limituješ.
+- Cloudflare — ak dáš stránku za Cloudflare, bot protection máš zadarmo a transparentne bez akéhokoľvek zásahu do frontendu.
+
+Pre začiatok by som išiel Cloudflare + honeypot. Captchu riešiš až keď vidíš reálny abuse.
+
+Michal: A ako funguje cloudflare? To je hosting?
+
+Claude: Nie, je to CDN + reverse proxy. Stojí medzi používateľom a tvojím serverom (Vercel).
+DNS nasmeruješ na Cloudflare namiesto priamo na Vercel. Cloudflare prijme request, skontroluje ho (boti, rate limiting, DDoS) a prepošle ďalej na Vercel. Používateľ to nevidí.
+Zadarmo tier ti dá bot protection, firewall, SSL a cache — pre hlasuj.sk viac než dosť na začiatok.
+
+Michal: Okej
+
+Claude: Keď budeš riešiť deploy, nastavenie Cloudflare pre Next.js/Vercel je na 10 minút.
+
+Michal: A ako je platena reklama od google adsense?
+
+Claude: CPC alebo CPM model:
+- CPC (cost per click) — dostaneš zaplatené keď niekto klikne na reklamu. Typicky 0.05–0.50€ za klik, závisí od témy.
+- CPM (cost per 1000 zobrazení) — platí sa za samotné zobrazenia aj bez kliku. Menej bežné pre malé weby.
+
+Google si berie ~32% z príjmov, ty dostaneš ~68%. Výplata mesačne, minimun 70€.
+Pre politický/občiansky obsah môže byť CPC vyššie lebo inzerenti v tej kategórii platia viac za klik. Ale reálny príjem závisí hlavne od návštevnosti — pri malom trafficu to nebudú veľké sumy.
+
+Michal: Okej, a musim na SK odvadzat z dane z toho?
+
+Claude: Áno, príjem z AdSense je zdaniteľný príjem.
+Závisí od toho ako to vedeš — ako fyzická osoba (živnostník/SZČO) alebo cez s.r.o.
+Odporúčam to prebrať s účtovníkom, nie som daňový poradca a SK daňové pravidlá majú svoje špecifiká.
+
+Michal: A na adsense musim mat firemny google ucet?
+
+Claude: Nie, stačí osobný Google účet. AdSense účet si založíš na adrese ads.google.com, zadáš bankový účet a daňové údaje (IČO ak si živnostník, alebo rodné číslo ako fyzická osoba).
+
+Michal: Ok
+
+Michal: A ked publikujem appku na google play mozem to robit tiez s osobnym uctom?
+
+Claude: Áno, ale Google vyžaduje jednorazový poplatok $25 za developer účet. Osobný účet stačí, nemusíš mať firmu.
+Ak plánuješ zarábať cez app (in-app purchases, predaj), Google si berie 15% (prvých $1M ročne), potom 30%.
+
+Michal: N8n sa vie na teba pripojit a spustit service?
+
+Claude: Áno, n8n má Anthropic/Claude node. Vieš poslať prompt, dostať odpoveď a ďalej spracovať v workflow.
+Čo máš na mysli pod "spustiť service" — nejaký konkrétny use case?
+
+Michal: Myslim nejakeho agenta alebo ako sa to u teba vola
+
+Claude: Áno, vieš. Volá sa to tool use alebo function calling — Claudovi dáš nástroje (funkcie) ktoré môže volať, a on rozhodne kedy ich použiť.
+V n8n kontexte by to vyzeralo tak, že n8n spustí Claude agenta, ten má k dispozícii nástroje (napr. čítať DB, poslať email, zavolať API) a sám rozhodne čo urobiť na základe promptu.
+Konkrétny use case by si mal na mysli? Napr. pre hlasuj.sk by dávalo zmysel — generovanie social media postov z výsledkov ankiet automaticky cez n8n + Claude.
+
+Michal: Presne o to mi ide
+
+Claude: To je vlastne jeden z bodov v tvojich poznámkach — "Generátor social media postov cez Claude API v admin paneli".
+
+Dve možnosti:
+- V admin paneli — tlačidlo priamo v app, zavolá Claude API, vygeneruje post, ty schváliš a skopíruješ.
+- n8n workflow — automaticky každý deň, vezme výsledky z Supabase, pošle do Claude, vygeneruje post, uloží alebo rovno publikuje (napr. cez Buffer/Hootsuite API).
+
+Druhá možnosť je plne automatická ale vyžaduje aj social media API integráciu. Prvá je jednoduchšia na začiatok.
+Kde chceš publikovať — Facebook, Instagram, X?
+
+Michal: A tiktok
+
+Claude: TikTok má API ale publikovanie videa automaticky nie je možné — ich API dovolí len upload draftu, ktorý musíš manuálne publishnúť v appke.
+Pre text/image posty (Facebook, Instagram, X) to ide plne automaticky cez n8n.
+Pre TikTok by workflow vyzeralo: n8n vygeneruje skript/text cez Claude → uloží ako draft → ty natočíš a publikuješ manuálne. Alebo použiješ nejaký video generátor (napr. HeyGen, Synthesia) ale to je už komplexnejšie a drahšie.
+
+Michal: Dobre, este musime vymysliet generovanie obrazkov a scrapovanie webov medii aby sme mali z coho robit otazky
+
+Claude: Dve samostatné veci:
+- Scrapovanie médií — n8n to zvládne natívne. RSS feedy slovenských médií (Denník N, SME, Pravda) sú najjednoduchšie — žiadne scrapovanie, len čítaš feed. Potom Claude z článkov vyextrahuje témy a vygeneruje otázky do ankety.
+- Generovanie obrázkov — na sociálne siete potrebuješ vizuál. Možnosti: DALL-E cez OpenAI API, alebo Ideogram/Flux ktoré sú lepšie na text v obrázkoch. n8n sa vie pripojiť na oba.
+
+Workflow by vyzeralo: RSS → Claude (extrakcia témy + otázka) → image gen (vizuál k postu) → ty schváliš → publikovanie.
+Chceš to riešiť teraz alebo až po deployi?
+
+Michal: Az neskor, zatial len rozmyslam aby som na to nezabudol
+
+Claude: Jasné, dáva zmysel to mať premyslené pred deployom. Kľudne sa vráť keď budeš ready.
+
+Michal: Ohladne toho gdpr to by sme vedeli poriesit len cez nejaky cookie banner nie?
+
+Claude: Áno, cookie consent banner stačí. Používateľ odsúhlasí, ty môžeš načítať AdSense/reCAPTCHA. Kto odmietne, reklamy/captcha sa nenačítajú.
+Knižnica ako cookie-consent alebo react-cookie-consent to vyrieši za pár minút v Next.js.
+
+Michal: A n8n sa vie napojit na telegram a mozem odsulasovat publishing cez to?
+
+Claude: Áno, n8n má Telegram node. Workflow by vyzeralo:
+n8n vygeneruje post → pošle ti správu na Telegram s textom + obrázkom → ty odpovieš "áno" alebo "nie" → n8n podľa toho publikuje alebo zahodí.
+Celkom elegantné riešenie na schvaľovanie bez nejakého extra admin UI.
+
+Michal: Tak to urobime potom
+
+Claude: Pekný stack — RSS → Claude → image gen → Telegram approval → publish. Dá sa postaviť celé v n8n.
+
+Michal: Kolko stoji n8n alebo sa toto da cez free?
+
+Claude: N8n má viacero možností:
+- Self-hosted — zadarmo, open source. Dáš na VPS (napr. Hetzner za ~4€/mesiac) a máš neobmedzené workflows.
+- n8n Cloud — free tier má 5 workflows a 2500 executions/mesiac, čo pre teba pravdepodobne nestačí. Platené od $24/mesiac.
+
+Pre tento use case by som išiel self-hosted na Hetzner — najlacnejšie a máš plnú kontrolu.
+
+Michal: Vyborne
+
+Claude: Hetzner CX22 (4€/mesiac) ti na n8n pokojne postačí.
+
+Michal: Ten rss feed na n8n dokaze aj social networks brat?
+
+Claude: Sociálne siete RSS väčšinou nemajú alebo ho zablokovali. Ale:
+- Facebook/Instagram — nie, API je veľmi obmedzené na čítanie
+- X (Twitter) — API je platené od 2023, základný tier $100/mesiac
+- TikTok — nie
+
+Pre slovenské médiá sú RSS feedy najspoľahlivejšie. Ak chceš sledovať čo sa šíri na sociálnych sieťach, lepšia možnosť je Apify — má hotové scrapers pre sociálne siete, platené ale má free tier. Vie sa pripojiť na n8n.
+Pre začiatok RSS médií (SME, Denník N, Pravda, TA3) ti dá dosť materiálu na otázky.
+
+Michal: N8n nathan je ok appka?
+
+Claude: Áno, n8n je solídny nástroj. Aktívne sa vyvíja, veľká komunita, veľa hotových integrácií. Pre tvoj use case je ideálny.
+
+Michal: Ale ci to je officialna appka alebo ci je bezpecna na android
+
+Claude: N8n nemá oficiálnu Android appku. Na Google Play sú len neoficiálne/tretie strany — tie by som nepoužíval.
+Na mobile pristupuješ cez prehliadač na tvoju self-hosted inštanciu. Na schvaľovanie postov ti bude stačiť Telegram ako sme hovorili.
+
+Michal: Ok
+
+Michal: export this chat to .txt
+
+Claude: Nemôžem exportovať konverzáciu priamo — nemám prístup k histórii chatu ako súboru.
+Možnosti: v claude.ai je v menu konverzácie možnosť exportu, alebo jednoducho select all + copy do textového editora.

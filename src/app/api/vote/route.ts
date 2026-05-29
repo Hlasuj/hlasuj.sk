@@ -8,7 +8,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { poll_id, option_id, country, device_type, browser_lang, age_group, gender } = body
+  const { poll_id, option_id, country, device_type, browser_lang, age_group, gender, phone } = body
 
   const { error } = await supabase.from('votes').insert({
     poll_id,
@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
     browser_lang: browser_lang || 'sk',
     age_group,
     gender,
+    phone: phone || null,
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
