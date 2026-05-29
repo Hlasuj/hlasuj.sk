@@ -351,7 +351,7 @@ function ResultsDashboard({ polls, votes }: { polls: Poll[]; votes: Vote[] }) {
   );
 }
 
-function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Poll[]) => void }) {
+function PollManager({ polls, setPolls, reloadPolls }: { polls: Poll[]; setPolls: (polls: Poll[]) => void; reloadPolls: () => Promise<void> }) {
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Poll | null>(null);
   const [newOpt, setNewOpt] = useState("");
@@ -383,8 +383,8 @@ function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Pol
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: draft.question, options: draft.options, active: draft.active, collect_phone: draft.collect_phone ?? false }),
       });
-      setPolls(polls.map((p) => (p.id === draft.id ? draft : p)));
     }
+    await reloadPolls();
     setSaving(false);
     cancel();
   }
@@ -489,7 +489,7 @@ function PollManager({ polls, setPolls }: { polls: Poll[]; setPolls: (polls: Pol
   );
 }
 
-function AdminShell({ polls, setPolls, votes, onBack }: { polls: Poll[]; setPolls: (polls: Poll[]) => void; votes: Vote[]; onBack: () => void }) {
+function AdminShell({ polls, setPolls, votes, onBack, reloadPolls }: { polls: Poll[]; setPolls: (polls: Poll[]) => void; votes: Vote[]; onBack: () => void; reloadPolls: () => Promise<void> }) {
   const [tab, setTab] = useState("results");
   const tabBtn = (t: string) => ({ background: tab === t ? G.blue : "transparent", border: `1px solid ${tab === t ? G.blue : "#1a1a2e"}`, color: tab === t ? "#fff" : "#555", padding: "6px 16px", cursor: "pointer" as const, fontSize: 12, fontFamily: "'DM Sans', sans-serif", borderRadius: 2, transition: "all 0.15s" });
   return (
@@ -504,7 +504,7 @@ function AdminShell({ polls, setPolls, votes, onBack }: { polls: Poll[]; setPoll
         </div>
         <button onClick={onBack} style={{ background: "none", border: "1px solid #1a1a2e", color: "#555", padding: "6px 16px", cursor: "pointer", fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>← Späť</button>
       </div>
-      {tab === "results" ? <ResultsDashboard polls={polls} votes={votes} /> : <PollManager polls={polls} setPolls={setPolls} />}
+      {tab === "results" ? <ResultsDashboard polls={polls} votes={votes} /> : <PollManager polls={polls} setPolls={setPolls} reloadPolls={reloadPolls} />}
     </div>
   );
 }
@@ -517,40 +517,45 @@ export default function Home() {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-  Promise.all([
-    fetch('/api/polls').then(r => r.json()),
-    fetch('/api/votes').then(r => r.json()),
-  ]).then(([pollsData, votesData]) => {
-    const mapped = pollsData.map((p: any) => ({
+  function mapPoll(p: any): Poll {
+    const sorted = (p.poll_options ?? []).sort((a: any, b: any) => a.position - b.position);
+    return {
       id: p.id,
       question: p.question,
       active: p.active,
       collect_phone: p.collect_phone ?? false,
-      options: p.poll_options
-        .sort((a: any, b: any) => a.position - b.position)
-        .map((o: any) => o.text),
-      optionIds: p.poll_options
-        .sort((a: any, b: any) => a.position - b.position)
-        .map((o: any) => o.id),
-    }));
-    setPolls(mapped);
+      options: sorted.map((o: any) => o.text),
+      optionIds: sorted.map((o: any) => o.id),
+    };
+  }
 
-    const mappedVotes = votesData.map((v: any) => ({
-      pollId: v.poll_id,
-      optionIndex: mapped.find((p: any) => p.id === v.poll_id)
-        ?.optionIds?.indexOf(v.option_id) ?? 0,
-      timestamp: new Date(v.timestamp).getTime(),
-      country: v.country || 'SK',
-      device: v.device_type || 'desktop',
-      lang: v.browser_lang || 'sk',
-      age: v.age_group,
-      gender: v.gender,
-    }));
-    setVotes(mappedVotes);
-    setLoading(false);
-  });
-}, []);
+  async function reloadPolls() {
+    const pollsData = await fetch('/api/polls').then(r => r.json());
+    setPolls(pollsData.map(mapPoll));
+  }
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/polls').then(r => r.json()),
+      fetch('/api/votes').then(r => r.json()),
+    ]).then(([pollsData, votesData]) => {
+      const mapped = pollsData.map(mapPoll);
+      setPolls(mapped);
+      const mappedVotes = votesData.map((v: any) => ({
+        pollId: v.poll_id,
+        optionIndex: mapped.find((p: any) => p.id === v.poll_id)
+          ?.optionIds?.indexOf(v.option_id) ?? 0,
+        timestamp: new Date(v.timestamp).getTime(),
+        country: v.country || 'SK',
+        device: v.device_type || 'desktop',
+        lang: v.browser_lang || 'sk',
+        age: v.age_group,
+        gender: v.gender,
+      }));
+      setVotes(mappedVotes);
+      setLoading(false);
+    });
+  }, []);
 
   async function handleSubmit(answers: Record<string, number>, phones: Record<string, string>) {
     for (const [pollId, optionIndex] of Object.entries(answers)) {
@@ -574,7 +579,7 @@ export default function Home() {
 
   if (loading) return <div style={{ minHeight: "100vh", background: "#FAFBFC", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", color: "#6B7280" }}>Načítavam...</div>;
 
-  if (view === "admin") return <AdminShell polls={polls} setPolls={setPolls} votes={votes} onBack={() => { setView("voter"); setStep("gate"); }} />;
+  if (view === "admin") return <AdminShell polls={polls} setPolls={setPolls} votes={votes} onBack={() => { setView("voter"); setStep("gate"); }} reloadPolls={reloadPolls} />;
   if (step === "gate") return <DemographicGate onConfirm={handleGate} />;
   if (step === "done") return <ThankYou />;
   return <VoterPoll polls={polls} demographics={demographics!} onSubmit={handleSubmit} onAdminAccess={() => setView("admin")} />;
