@@ -11,6 +11,7 @@ Husky blocks commits if lint or tests fail. Order: `lint-staged` (ESLint --fix) 
 ## Env Vars
 
 Required in `.env.local` and Vercel dashboard:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `ADMIN_PASSWORD` — plain-text; hashed to SHA-256 for cookie comparison
@@ -43,11 +44,21 @@ Hidden `⋯` menu → `POST /api/admin/login` → sets `admin_token` httpOnly co
 - `PUT /api/polls/[id]` with `options` does full delete-and-reinsert — option IDs change on every save.
 - Admin cookie is `sha256(ADMIN_PASSWORD)` — acceptable for low-stakes panel, not for sensitive data.
 
+## Available Skills
+
+- /commit — format → optional optimize → commit message → push → optional frontend test
+- /test — run unit tests or write them if none exist
+- /frontend-test — browser test the live site using Claude in Chrome
+- /optimize — performance, bundle size, and code quality fixes
+- /format — Prettier + ESLint auto-fix
+
 ## Agent Behavior
+
 After every task, always give a code change summary the user can learn from:
+
 - What was changed and where (file + what specifically)
 - Show the key code change — a short before/after snippet or the most important new code block
 - Why it was done that way — the reasoning, not just the outcome
 - What problem it solves or what it improves
 - Any SQL migrations, env vars, or manual steps needed
-The goal is that the user walks away understanding the code better, not just knowing it was done.
+  The goal is that the user walks away understanding the code better, not just knowing it was done.

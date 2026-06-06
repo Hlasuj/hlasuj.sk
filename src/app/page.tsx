@@ -1788,7 +1788,7 @@ export default function Home() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             poll_id: pollId,
-            option_id: p.optionIds[optionIndex],
+            option_id: p.optionIds?.[optionIndex] ?? '',
             age_group: demographics?.age,
             gender: demographics?.gender,
             phone: phones[pollId] || null,
