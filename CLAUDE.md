@@ -1,53 +1,53 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 @AGENTS.md
 
-## Commands
+**hlasuj.sk** — anonymous Slovak polling app. Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). No accounts, no cookies, no IP tracking — privacy is a core feature.
 
-```bash
-npm run dev      # Start dev server at http://localhost:3000 (uses Turbopack by default)
-npm run build    # Production build (also uses Turbopack by default)
-npm run start    # Start production server
-npm run lint     # Run ESLint directly (next lint no longer exists in Next.js 16)
-```
+Always work from `C:\Users\Admin\hlasuj-sk`.
 
-There is no test suite configured yet.
+## Pre-commit
 
-## Architecture
+Husky blocks commits if lint or tests fail. Order: `lint-staged` (ESLint --fix) → Prettier → `npm test`.
 
-- **Framework**: Next.js 16.2.4 with App Router (`src/app/`)
-- **Styling**: Tailwind CSS v4 via PostCSS (`@tailwindcss/postcss`)
-- **Backend**: Supabase — client singleton exported from `src/lib/supabase.ts`, reads `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **Path alias**: `@/*` maps to `src/*`
+## Env Vars
 
-## Next.js 16 Breaking Changes
+Required in `.env.local` and Vercel dashboard:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `ADMIN_PASSWORD` — plain-text; hashed to SHA-256 for cookie comparison
+- `CRON_SECRET` — random secret; Vercel sends it as `Authorization: Bearer <secret>` on cron invocations
 
-This project runs Next.js 16, which has breaking changes from earlier versions. Read `node_modules/next/dist/docs/` before writing code that touches these areas.
+## Admin Auth
 
-**Async-only APIs** — synchronous access is fully removed:
-- `cookies()`, `headers()`, `draftMode()` must be awaited
-- `params` and `searchParams` props in layouts/pages/routes are Promises — always `await` them
-- Use `npx next typegen` to generate `PageProps`/`LayoutProps`/`RouteContext` type helpers
+Hidden `⋯` menu → `POST /api/admin/login` → sets `admin_token` httpOnly cookie (`sha256(ADMIN_PASSWORD)`, 24h, `sameSite: strict`, timing-safe compare via `checkAdminAuth()` in `src/lib/auth.ts`).
 
-**Routing**:
-- `middleware.ts` is renamed to `proxy.ts`; the export must be named `proxy` (not `middleware`)
-- All parallel route slots (`@slot/`) require an explicit `default.js` file or the build fails
+## DB Schema
 
-**Caching**:
-- `revalidateTag(tag)` requires a second `cacheLife` profile argument: `revalidateTag('tag', 'max')`
-- Use `updateTag` (Server Actions only) for immediate read-your-writes cache invalidation
-- `unstable_cacheLife` / `unstable_cacheTag` are now stable — import as `cacheLife` / `cacheTag`
-- `experimental.dynamicIO` is renamed to `cacheComponents` (top-level config option)
-- PPR: use `cacheComponents: true` instead of `experimental.ppr`
+- **`polls`** — `id`, `question`, `active`, `collect_phone`, `starts_at`, `ends_at`, `phone_retention_days`, `created_at`
+- **`poll_options`** — `id`, `poll_id`, `text`, `position`
+- **`votes`** — `poll_id`, `option_id`, `timestamp`, `country`, `device_type`, `browser_lang`, `age_group`, `gender`, `phone`
 
-**Linting**: `next build` no longer runs ESLint automatically. Use `npm run lint` explicitly.
+## Cron Jobs
 
-**Config**:
-- Turbopack config moved from `experimental.turbopack` to top-level `turbopack`
-- `serverRuntimeConfig` / `publicRuntimeConfig` removed — use `process.env` directly in Server Components and `NEXT_PUBLIC_*` for client-accessible values
-- `images.domains` deprecated — use `images.remotePatterns`
-- Sass tilde (`~`) imports not supported by Turbopack — use bare package names
+`GET /api/cron/cleanup-phones` — runs daily at 02:00 UTC (configured in `vercel.json`). Finds polls where `ends_at + phone_retention_days` (default 30) is in the past and sets `phone = null` on all votes for those polls. Protected by `Authorization: Bearer <CRON_SECRET>` header.
 
-**Removed**: AMP support, `next lint` CLI command, `devIndicators.appIsrStatus/buildActivity/buildActivityPosition`
+## Next.js 16 Gotchas
+
+- `cookies()`, `headers()`, `params`, `searchParams` must be awaited — sync access removed
+- `middleware.ts` → `proxy.ts`; export must be named `proxy`
+- `next build` no longer runs ESLint — use `npm run lint`
+
+## Known Issues
+
+- `src/app/page.tsx` is ~800 lines (entire voter UI + admin shell in one client component). Split if it grows.
+- `GET /api/votes` has no pagination.
+- `PUT /api/polls/[id]` with `options` does full delete-and-reinsert — option IDs change on every save.
+- Admin cookie is `sha256(ADMIN_PASSWORD)` — acceptable for low-stakes panel, not for sensitive data.
+
+## Agent Behavior
+After every task, always give a code change summary the user can learn from:
+- What was changed and where (file + what specifically)
+- Show the key code change — a short before/after snippet or the most important new code block
+- Why it was done that way — the reasoning, not just the outcome
+- What problem it solves or what it improves
+- Any SQL migrations, env vars, or manual steps needed
+The goal is that the user walks away understanding the code better, not just knowing it was done.

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-phones",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
