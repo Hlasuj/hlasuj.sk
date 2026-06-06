@@ -5,11 +5,11 @@ export const metadata = { title: 'Ochrana súkromia – Hlasuj.sk' };
 const S = {
   page: {
     minHeight: '100vh',
-    background: '#0A0F1E',
+    background: '#FAFBFC',
     fontFamily: "'DM Sans', sans-serif",
   } as const,
   header: {
-    borderBottom: '1px solid #1a1a2e',
+    borderBottom: '1px solid #D1D9E6',
     padding: '16px 32px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -19,7 +19,7 @@ const S = {
   logoCircle: {
     width: 26,
     height: 26,
-    background: '#fff',
+    background: '#0F2044',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -29,17 +29,17 @@ const S = {
     width: 9,
     height: 9,
     borderRadius: '50%',
-    background: '#0F2044',
+    background: '#FAFBFC',
   } as const,
   logoText: {
     fontFamily: "'Playfair Display', serif",
     fontSize: 17,
     fontWeight: 600,
-    color: '#fff',
+    color: '#0F2044',
   } as const,
   back: {
     background: 'none',
-    border: '1px solid #1a1a2e',
+    border: '1px solid #D1D9E6',
     color: '#555',
     padding: '6px 16px',
     fontSize: 12,
@@ -59,7 +59,7 @@ const S = {
     fontFamily: "'Playfair Display', serif",
     fontSize: 32,
     fontWeight: 600,
-    color: '#fff',
+    color: '#0F2044',
     marginBottom: 32,
     lineHeight: 1.3,
   } as const,
@@ -67,7 +67,7 @@ const S = {
     fontFamily: "'DM Sans', sans-serif",
     fontSize: 14,
     fontWeight: 600,
-    color: '#6B8CB8',
+    color: '#2563EB',
     letterSpacing: '0.08em',
     textTransform: 'uppercase' as const,
     marginBottom: 10,
@@ -75,7 +75,7 @@ const S = {
   },
   p: {
     fontSize: 15,
-    color: '#8a9ab8',
+    color: '#4A5568',
     lineHeight: 1.8,
     marginBottom: 16,
   } as const,
@@ -156,7 +156,7 @@ export default function OchranaSukromia() {
         <h2 style={S.h2}>Kontakt</h2>
         <p style={S.p}>
           Otázky týkajúce sa ochrany osobných údajov zasielajte na:{' '}
-          <span style={{ color: '#6B8CB8' }}>info@hlasuj.sk</span>
+          <span style={{ color: '#2563EB' }}>info@hlasuj.sk</span>
         </p>
       </div>
     </div>

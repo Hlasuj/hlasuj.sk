@@ -5,11 +5,11 @@ export const metadata = { title: 'Kontakt – Hlasuj.sk' };
 const S = {
   page: {
     minHeight: '100vh',
-    background: '#0A0F1E',
+    background: '#FAFBFC',
     fontFamily: "'DM Sans', sans-serif",
   } as const,
   header: {
-    borderBottom: '1px solid #1a1a2e',
+    borderBottom: '1px solid #D1D9E6',
     padding: '16px 32px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -19,7 +19,7 @@ const S = {
   logoCircle: {
     width: 26,
     height: 26,
-    background: '#fff',
+    background: '#0F2044',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -29,17 +29,17 @@ const S = {
     width: 9,
     height: 9,
     borderRadius: '50%',
-    background: '#0F2044',
+    background: '#FAFBFC',
   } as const,
   logoText: {
     fontFamily: "'Playfair Display', serif",
     fontSize: 17,
     fontWeight: 600,
-    color: '#fff',
+    color: '#0F2044',
   } as const,
   back: {
     background: 'none',
-    border: '1px solid #1a1a2e',
+    border: '1px solid #D1D9E6',
     color: '#555',
     padding: '6px 16px',
     fontSize: 12,
@@ -59,13 +59,13 @@ const S = {
     fontFamily: "'Playfair Display', serif",
     fontSize: 32,
     fontWeight: 600,
-    color: '#fff',
+    color: '#0F2044',
     marginBottom: 12,
     lineHeight: 1.3,
   } as const,
   sub: {
     fontSize: 15,
-    color: '#8a9ab8',
+    color: '#4A5568',
     lineHeight: 1.7,
     marginBottom: 40,
   } as const,
@@ -81,9 +81,9 @@ const S = {
   input: {
     width: '100%',
     padding: '12px 16px',
-    background: '#0a0a14',
-    border: '1px solid #1a1a2e',
-    color: '#ccc',
+    background: '#F0F2F5',
+    border: '1px solid #D1D9E6',
+    color: '#2D3748',
     fontFamily: "'DM Sans', sans-serif",
     fontSize: 14,
     outline: 'none',
@@ -93,9 +93,9 @@ const S = {
   textarea: {
     width: '100%',
     padding: '12px 16px',
-    background: '#0a0a14',
-    border: '1px solid #1a1a2e',
-    color: '#ccc',
+    background: '#F0F2F5',
+    border: '1px solid #D1D9E6',
+    color: '#2D3748',
     fontFamily: "'DM Sans', sans-serif",
     fontSize: 14,
     outline: 'none',
@@ -120,8 +120,8 @@ const S = {
     gap: 10,
     marginBottom: 40,
     padding: '16px 20px',
-    border: '1px solid #1a1a2e',
-    background: '#0a0a14',
+    border: '1px solid #D1D9E6',
+    background: '#F0F2F5',
   } as const,
 };
 
@@ -153,7 +153,7 @@ export default function Kontakt() {
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 14,
-              color: '#6B8CB8',
+              color: '#2563EB',
             }}
           >
             info@hlasuj.sk

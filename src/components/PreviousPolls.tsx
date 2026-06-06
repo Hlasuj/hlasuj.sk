@@ -64,7 +64,7 @@ function BarChart({
               fontFamily: "'DM Sans', sans-serif",
             }}
           >
-            <span style={{ fontSize: 13, color: '#ccc' }}>{r.text}</span>
+            <span style={{ fontSize: 13, color: '#2D3748' }}>{r.text}</span>
             <span style={{ fontSize: 12, color: '#555' }}>
               {r.count} ({r.pct}%)
             </span>
@@ -72,7 +72,7 @@ function BarChart({
           <div
             style={{
               height: 6,
-              background: '#1a1a2e',
+              background: '#E2E8F0',
               borderRadius: 3,
               overflow: 'hidden',
             }}
@@ -120,9 +120,9 @@ function SelectFilter({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         style={{
-          background: '#0a0a14',
-          border: '1px solid #1a1a2e',
-          color: '#aaa',
+          background: '#F0F2F5',
+          border: '1px solid #D1D9E6',
+          color: '#333',
           padding: '4px 8px',
           fontSize: 12,
           cursor: 'pointer',
@@ -185,7 +185,7 @@ function PollCard({ poll }: { poll: PreviousPoll }) {
   });
 
   return (
-    <div style={{ borderBottom: '1px solid #1a1a2e' }}>
+    <div style={{ borderBottom: '1px solid #D1D9E6' }}>
       <button
         onClick={toggle}
         style={{
@@ -207,7 +207,7 @@ function PollCard({ poll }: { poll: PreviousPoll }) {
               fontFamily: "'Playfair Display', serif",
               fontSize: 15,
               fontWeight: 600,
-              color: '#ddd',
+              color: '#0F2044',
               lineHeight: 1.4,
               marginBottom: 3,
             }}
@@ -319,14 +319,14 @@ export default function PreviousPolls({ onBack }: { onBack: () => void }) {
     <div
       style={{
         minHeight: '100vh',
-        background: '#0A0F1E',
+        background: '#FAFBFC',
         fontFamily: "'DM Sans', sans-serif",
       }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500&display=swap');`}</style>
       <div
         style={{
-          borderBottom: '1px solid #1a1a2e',
+          borderBottom: '1px solid #D1D9E6',
           padding: '16px 32px',
           display: 'flex',
           alignItems: 'center',
@@ -338,7 +338,7 @@ export default function PreviousPolls({ onBack }: { onBack: () => void }) {
             style={{
               width: 26,
               height: 26,
-              background: '#fff',
+              background: '#0F2044',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -350,7 +350,7 @@ export default function PreviousPolls({ onBack }: { onBack: () => void }) {
                 width: 9,
                 height: 9,
                 borderRadius: '50%',
-                background: '#0F2044',
+                background: '#FAFBFC',
               }}
             />
           </div>
@@ -359,7 +359,7 @@ export default function PreviousPolls({ onBack }: { onBack: () => void }) {
               fontFamily: "'Playfair Display', serif",
               fontSize: 17,
               fontWeight: 600,
-              color: '#fff',
+              color: '#0F2044',
             }}
           >
             hlasuj.sk
@@ -369,7 +369,7 @@ export default function PreviousPolls({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           style={{
             background: 'none',
-            border: '1px solid #1a1a2e',
+            border: '1px solid #D1D9E6',
             color: '#555',
             padding: '6px 16px',
             cursor: 'pointer',
@@ -397,7 +397,7 @@ export default function PreviousPolls({ onBack }: { onBack: () => void }) {
             fontFamily: "'Playfair Display', serif",
             fontSize: 28,
             fontWeight: 600,
-            color: '#fff',
+            color: '#0F2044',
             marginBottom: 40,
             lineHeight: 1.3,
           }}
