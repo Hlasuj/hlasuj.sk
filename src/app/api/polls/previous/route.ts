@@ -18,10 +18,8 @@ export async function GET() {
       )
     `
     )
-    .eq('active', true)
-    .not('ends_at', 'is', null)
-    .lt('ends_at', now)
-    .order('ends_at', { ascending: false });
+    .or(`active.eq.false,ends_at.lt.${now}`)
+    .order('ends_at', { ascending: false, nullsFirst: false });
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
