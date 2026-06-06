@@ -160,7 +160,7 @@ export default function Kontakt() {
           </span>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form>
           <div>
             <label style={S.fieldLabel}>Meno</label>
             <input type="text" placeholder="Ján Novák" style={S.input} />
