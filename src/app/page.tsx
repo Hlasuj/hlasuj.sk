@@ -440,12 +440,25 @@ function VoterPoll({
   const active = isExpiredFallback ? polls : polls.filter((p) => p.active);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [phones, setPhones] = useState<Record<string, string>>({});
+  const [phoneConsent, setPhoneConsent] = useState<Record<string, boolean>>({});
+  const [phoneErrors, setPhoneErrors] = useState<Record<string, string>>({});
   const [showAdmin, setShowAdmin] = useState(false);
+
+  function validateSlovakPhone(value: string): string {
+    if (!value) return '';
+    const normalized = value.replace(/[\s\-]/g, '');
+    return /^(\+421|0)9\d{8}$/.test(normalized)
+      ? ''
+      : 'Zadajte platné slovenské mobilné číslo (+421 9xx alebo 09xx)';
+  }
   const [pass, setPass] = useState('');
   const [passErr, setPassErr] = useState(false);
   const answered = Object.keys(answers).length;
   const total = isExpiredFallback ? 0 : active.length;
-  const allDone = answered === total && total > 0;
+  const phoneValid = Object.entries(phones).every(
+    ([, val]) => !val || /^(\+421|0)9\d{8}$/.test(val.replace(/[\s\-]/g, ''))
+  );
+  const allDone = answered === total && total > 0 && phoneValid;
   const progress = total > 0 ? (answered / total) * 100 : 0;
 
   async function tryAdmin() {
@@ -751,13 +764,66 @@ function VoterPoll({
                 <input
                   type="tel"
                   value={phones[poll.id] || ''}
-                  onChange={(e) =>
-                    setPhones({ ...phones, [poll.id]: e.target.value })
-                  }
-                  placeholder="+421..."
+                  onChange={(e) => {
+                    setPhones({ ...phones, [poll.id]: e.target.value });
+                    if (phoneErrors[poll.id])
+                      setPhoneErrors({ ...phoneErrors, [poll.id]: '' });
+                  }}
+                  onBlur={(e) => {
+                    const err = validateSlovakPhone(e.target.value);
+                    setPhoneErrors({ ...phoneErrors, [poll.id]: err });
+                  }}
+                  placeholder="+421 9xx xxx xxx"
                   className="sp-input"
-                  style={{ maxWidth: 240 }}
+                  style={{
+                    maxWidth: 240,
+                    borderColor: phoneErrors[poll.id] ? '#e53e3e' : undefined,
+                  }}
                 />
+                {phoneErrors[poll.id] && (
+                  <div style={{ fontSize: 11, color: '#e53e3e', marginTop: 5 }}>
+                    {phoneErrors[poll.id]}
+                  </div>
+                )}
+                {phones[poll.id] && (
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 8,
+                      marginTop: 10,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={phoneConsent[poll.id] ?? false}
+                      onChange={(e) =>
+                        setPhoneConsent({
+                          ...phoneConsent,
+                          [poll.id]: e.target.checked,
+                        })
+                      }
+                      style={{ marginTop: 2, flexShrink: 0 }}
+                    />
+                    <span
+                      style={{ fontSize: 12, color: G.muted, lineHeight: 1.5 }}
+                    >
+                      Súhlasím so{' '}
+                      <a
+                        href="/ochrana-sukromia"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#2563EB',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        spracovaním osobných údajov
+                      </a>
+                    </span>
+                  </label>
+                )}
               </div>
             )}
           </div>
@@ -766,12 +832,20 @@ function VoterPoll({
           <button
             className="sp-btn-primary"
             disabled={!allDone}
-            onClick={() => allDone && onSubmit(answers, phones)}
+            onClick={() => {
+              if (!allDone) return;
+              const consentedPhones = Object.fromEntries(
+                Object.entries(phones).filter(([id]) => phoneConsent[id])
+              );
+              onSubmit(answers, consentedPhones);
+            }}
             style={{ width: '100%', padding: '18px', fontSize: 15 }}
           >
             {allDone
               ? 'Odoslať hlasovanie →'
-              : `Odpovedzte na všetky otázky (${answered}/${total})`}
+              : !phoneValid
+                ? 'Opravte formát telefónneho čísla'
+                : `Odpovedzte na všetky otázky (${answered}/${total})`}
           </button>
         )}
       </div>
@@ -1121,6 +1195,11 @@ function ResultsDashboard({ polls, votes }: { polls: Poll[]; votes: Vote[] }) {
   );
 }
 
+function randomPick<T>(arr: T[]): T | null {
+  if (arr.length === 0) return null;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 function PollManager({
   polls,
   setPolls,
@@ -1134,6 +1213,12 @@ function PollManager({
   const [draft, setDraft] = useState<Poll | null>(null);
   const [newOpt, setNewOpt] = useState('');
   const [saving, setSaving] = useState(false);
+  const [winner, setWinner] = useState<{
+    pollId: string;
+    phone: string | null;
+    loading: boolean;
+  } | null>(null);
+  const [deletingPhones, setDeletingPhones] = useState<string | null>(null);
 
   const IS_NEW = draft && !polls.find((p) => p.id === draft.id);
 
@@ -1244,6 +1329,28 @@ function PollManager({
   async function del(id: string) {
     await fetch(`/api/polls/${id}`, { method: 'DELETE' });
     setPolls(polls.filter((p) => p.id !== id));
+  }
+
+  async function pickWinner(pollId: string) {
+    setWinner({ pollId, phone: null, loading: true });
+    const data = await fetch(`/api/polls/${pollId}/phones`).then((r) =>
+      r.json()
+    );
+    const phones: string[] = Array.isArray(data) ? data : [];
+    const picked = randomPick(phones);
+    setWinner({ pollId, phone: picked, loading: false });
+  }
+
+  async function clearPhones(pollId: string) {
+    if (
+      !confirm(
+        'Vymazať všetky telefónne čísla pre túto anketu? Akcia je nevratná.'
+      )
+    )
+      return;
+    setDeletingPhones(pollId);
+    await fetch(`/api/polls/${pollId}/phones`, { method: 'DELETE' });
+    setDeletingPhones(null);
   }
 
   const canSave = draft && draft.question.trim() && draft.options.length >= 2;
@@ -1616,7 +1723,15 @@ function PollManager({
                 {poll.options.length} možností
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                flexShrink: 0,
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+              }}
+            >
               {(
                 [
                   [
@@ -1644,8 +1759,123 @@ function PollManager({
                   {label}
                 </button>
               ))}
+              {poll.collect_phone && (
+                <>
+                  <button
+                    onClick={() => pickWinner(poll.id)}
+                    style={{
+                      background: 'none',
+                      border: `1px solid #2a4a2a`,
+                      color: '#4caf50',
+                      padding: '5px 12px',
+                      cursor: 'pointer',
+                      fontSize: 11,
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    🎲 Víťaz
+                  </button>
+                  <button
+                    onClick={() => clearPhones(poll.id)}
+                    disabled={deletingPhones === poll.id}
+                    style={{
+                      background: 'none',
+                      border: `1px solid ${G.darkDangerBorder}`,
+                      color: G.darkDanger,
+                      padding: '5px 12px',
+                      cursor: 'pointer',
+                      fontSize: 11,
+                      fontFamily: "'DM Sans', sans-serif",
+                      opacity: deletingPhones === poll.id ? 0.5 : 1,
+                    }}
+                  >
+                    {deletingPhones === poll.id ? 'Mažem...' : 'Vymazať čísla'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
+          {winner?.pollId === poll.id && (
+            <div
+              style={{
+                marginTop: 14,
+                padding: '14px 16px',
+                background: '#0a1a0a',
+                border: '1px solid #2a4a2a',
+                borderRadius: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    color: '#4caf50',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    marginBottom: 6,
+                  }}
+                >
+                  🎲 Vylosovaný víťaz
+                </div>
+                {winner.loading ? (
+                  <div style={{ fontSize: 13, color: '#555' }}>
+                    Losuje sa...
+                  </div>
+                ) : winner.phone ? (
+                  <div
+                    style={{
+                      fontSize: 18,
+                      color: '#fff',
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    {winner.phone}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 13, color: '#555' }}>
+                    Žiadne telefónne čísla v tejto ankete.
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {!winner.loading && winner.phone && (
+                  <button
+                    onClick={() => pickWinner(poll.id)}
+                    style={{
+                      background: 'none',
+                      border: '1px solid #2a4a2a',
+                      color: '#4caf50',
+                      padding: '5px 12px',
+                      cursor: 'pointer',
+                      fontSize: 11,
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    Losovať znovu
+                  </button>
+                )}
+                <button
+                  onClick={() => setWinner(null)}
+                  style={{
+                    background: 'none',
+                    border: `1px solid ${G.darkBorder}`,
+                    color: '#555',
+                    padding: '5px 12px',
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  Zavrieť
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -1792,6 +2022,7 @@ export default function Home() {
             age_group: demographics?.age,
             gender: demographics?.gender,
             phone: phones[pollId] || null,
+            phone_consent_at: phones[pollId] ? new Date().toISOString() : null,
           }),
         });
       })

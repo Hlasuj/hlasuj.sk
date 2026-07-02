@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     age_group,
     gender,
     phone,
+    phone_consent_at,
   } = body;
 
   const { error } = await supabase.from('votes').insert({
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
     age_group,
     gender,
     phone: phone || null,
+    phone_consent_at: phone_consent_at || null,
   });
 
   if (error)

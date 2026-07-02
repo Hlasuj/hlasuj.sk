@@ -25,7 +25,7 @@ Hidden `⋯` menu → `POST /api/admin/login` → sets `admin_token` httpOnly co
 
 - **`polls`** — `id`, `question`, `active`, `collect_phone`, `starts_at`, `ends_at`, `phone_retention_days`, `created_at`
 - **`poll_options`** — `id`, `poll_id`, `text`, `position`
-- **`votes`** — `poll_id`, `option_id`, `timestamp`, `country`, `device_type`, `browser_lang`, `age_group`, `gender`, `phone`
+- **`votes`** — `poll_id`, `option_id`, `timestamp`, `country`, `device_type`, `browser_lang`, `age_group`, `gender`, `phone`, `phone_consent_at`
 
 ## Cron Jobs
 
