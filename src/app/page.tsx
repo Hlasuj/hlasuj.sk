@@ -265,6 +265,10 @@ function DemographicGate({
   const [submitting, setSubmitting] = useState(false);
   const ready = age && gender;
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div
       style={{
@@ -475,6 +479,10 @@ function VoterPoll({
   const active = isExpiredFallback ? polls : polls.filter((p) => p.active);
   const [phoneErrors, setPhoneErrors] = useState<Record<string, string>>({});
   const [showAdmin, setShowAdmin] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   function validateSlovakPhone(value: string): string {
     if (!value) return '';
