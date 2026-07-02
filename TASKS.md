@@ -25,7 +25,6 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - [ ] **n8n automation pipeline** (issue #16) — scrape feeds from main Slovak media sites → compare most relevant news → select the few most valid topics → generate a poll post for each. Details TBD. Pipeline feeds poll creation on hlasuj.sk and posts to FB/Insta/TikTok.
 - [ ] **GDPR legal basis documentation** (issue #14) — phone number collection needs documented legal basis (consent vs legitimate interest) before commercial launch. Needs a lawyer.
 - [ ] **Multiple concurrent active polls** (issue #22) — support discovery/browsing of multiple active polls instead of funneling to single active poll.
-- [ ] **Show vote count social proof** (issue #21) — display "X Slovákov už hlasovalo" before demographics gate for social proof.
 - [ ] **Show poll question before demographics** (issue #20) — reorder flow so users see the question first before being asked for age/gender.
 - [ ] **Poll topic suggestion form** (issue #23) — add lightweight form for users to suggest poll topics.
 - [ ] **Email/RSS digest** (issue #24) — opt-in notification (email or RSS feed) for new polls and results.
@@ -60,3 +59,4 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - frontend-test skill fixed (tool name prefix `mcp__Claude_in_Chrome__` → `mcp__claude-in-chrome__`)
 - Fixed previous-polls "1970 date" bug (issue #18) — added null guard for `poll.ends_at` in `src/components/PreviousPolls.tsx`
 - Fixed typo on /o-projekte (issue #19) — "nezboiera" → "nezbiera"
+- Added vote count social proof to demographics gate (issue #21) — displays "X Slovákov si myslí..." before age/gender selection
