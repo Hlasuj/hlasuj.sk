@@ -21,7 +21,8 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 
 ### Features
 
-- [ ] **Share results button** — design done, blocked on social network embeds + n8n workflow setup. Add when n8n is ready.
+- [ ] **Share results button** — design done, blocked on social network setup. Publish to Facebook, Instagram, TikTok. Add when social accounts + n8n are ready.
+- [ ] **n8n automation pipeline** — scrape feeds from main Slovak media sites → compare most relevant news → select the few most valid topics → generate a poll post for each. Details TBD. Pipeline feeds poll creation on hlasuj.sk and posts to FB/Insta/TikTok.
 - [ ] **GDPR legal basis documentation** — phone number collection needs documented legal basis (consent vs legitimate interest) before commercial launch. Needs a lawyer.
 
 ### Tooling

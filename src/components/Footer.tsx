@@ -54,7 +54,7 @@ export default function Footer() {
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12,
-            color: '#1e3a6e',
+            color: '#6B8CB8',
             margin: 0,
           }}
         >
