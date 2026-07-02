@@ -39,6 +39,10 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 
 - [ ] **Fix /kontakt form** (issue #17) — contact form is non-functional; either wire it up (POST to API + email via Resend/SendGrid) or remove it entirely to avoid displaying a broken form.
 
+### Brainstorm
+
+- [ ] **Reconsider admin login entry point visibility** (issue #29) — the "⋯" menu in the voter header exposes the admin login form to every visitor. Discuss: dedicated `/admin` route vs. less discoverable trigger vs. keep as-is.
+
 ---
 
 ## Completed
@@ -61,3 +65,4 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - Fixed typo on /o-projekte (issue #19) — "nezboiera" → "nezbiera"
 - Added vote count social proof to demographics gate (issue #21) — displays "X Slovákov sa vyjadrilo..." before age/gender selection
 - Reordered voting flow to vote-first (issue #20) — Krok 1: poll with clickable answers → Krok 2: demographics, submits directly (no redundant return-to-poll step). Also lifted answers/phones state to parent to survive step transitions, and fixed scroll position resetting on step change.
+- Fixed mobile header overflow (issue #30) — voter header now uses a two-row layout on mobile (≤480px) instead of clipping/overlapping. Also removed dead demographics text and unused `Demographics` type.
