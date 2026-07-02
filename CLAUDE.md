@@ -76,6 +76,19 @@ See `.claude/skills/README.md` for detailed usage and template prompts.
 
 You've authorized me to use **close-issue** proactively: when you say "issue #17 is done" or "we fixed the contact form", I will automatically close the issue and update TASKS.md without asking.
 
+## Workflow for Feature Development
+
+**For UX/feature issues: Discuss approach BEFORE implementing**
+
+1. **Discovery** — Clarify the problem and desired outcome
+2. **Options** — Present 2-3 approaches with pros/cons for each
+3. **Recommendation** — Suggest best approach (with reasoning)
+4. **Approval** — Get user feedback and pick direction together
+5. **Implementation** — Build with full context and alignment
+6. **Testing** — User tests before closing issue
+
+This prevents rework and ensures we build the right thing. For simple bug fixes (typos, null guards), proceed directly to implementation.
+
 ## Agent Behavior
 
 After every task, always give a code change summary the user can learn from:
