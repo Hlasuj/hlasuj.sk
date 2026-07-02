@@ -32,11 +32,6 @@ interface Vote {
   gender?: string;
 }
 
-interface Demographics {
-  age: string;
-  gender: string;
-}
-
 interface RawPollOption {
   id: string;
   text: string;
@@ -106,6 +101,12 @@ const cssStyles = `
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   .bar-fill { transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
   .admin-dark { background: ${G.ink}; min-height: 100vh; color: #f0f0f0; font-family: 'DM Sans', sans-serif; }
+  .sp-header-desktop { display: flex; }
+  .sp-header-mobile { display: none; }
+  @media (max-width: 480px) {
+    .sp-header-desktop { display: none; }
+    .sp-header-mobile { display: flex; }
+  }
 `;
 
 // Moved outside Home — pure function, no closure dependencies
@@ -452,7 +453,6 @@ function DemographicGate({
 
 function VoterPoll({
   polls,
-  demographics,
   answers,
   setAnswers,
   phones,
@@ -464,7 +464,6 @@ function VoterPoll({
   onProceedToDemographics,
 }: {
   polls: Poll[];
-  demographics: Demographics | null;
   answers: Record<string, number>;
   setAnswers: (v: Record<string, number>) => void;
   phones: Record<string, string>;
@@ -514,6 +513,117 @@ function VoterPoll({
     }
   }
 
+  const predchadzajuceBtn = (
+    <button
+      onClick={onPrevious}
+      style={{
+        background: 'none',
+        border: 'none',
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 13,
+        color: G.muted,
+        cursor: 'pointer',
+        padding: '4px 0',
+        whiteSpace: 'nowrap' as const,
+      }}
+    >
+      Predchádzajúce →
+    </button>
+  );
+
+  const progressIndicator = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+        style={{
+          width: 120,
+          height: 4,
+          background: G.borderLight,
+          borderRadius: 2,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="bar-fill"
+          style={{
+            width: `${progress}%`,
+            height: '100%',
+            background: G.blue,
+            borderRadius: 2,
+          }}
+        />
+      </div>
+      <span
+        style={{ fontSize: 12, color: G.muted, whiteSpace: 'nowrap' as const }}
+      >
+        {answered}/{total}
+      </span>
+    </div>
+  );
+
+  const adminMenu = (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setShowAdmin(!showAdmin)}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: G.slate,
+          cursor: 'pointer',
+          fontSize: 18,
+          lineHeight: 1,
+          padding: '4px 8px',
+        }}
+      >
+        ⋯
+      </button>
+      {showAdmin && (
+        <div
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 36,
+            background: G.white,
+            border: `1px solid ${G.border}`,
+            padding: 20,
+            zIndex: 20,
+            minWidth: 240,
+            borderRadius: 6,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: G.muted,
+              marginBottom: 12,
+            }}
+          >
+            Admin prístup
+          </div>
+          <input
+            type="password"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && tryAdmin()}
+            placeholder="Heslo"
+            className={`sp-input ${passErr ? 'error' : ''}`}
+            style={{ marginBottom: 10 }}
+          />
+          <button
+            onClick={tryAdmin}
+            className="sp-btn-primary"
+            style={{ width: '100%', padding: '10px 0' }}
+          >
+            Vstúpiť
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div
       style={{
@@ -534,121 +644,50 @@ function VoterPoll({
         }}
       >
         <div
+          className="sp-header-desktop"
           style={{
             maxWidth: 720,
             margin: '0 auto',
-            display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
           <Logo />
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <button
-              onClick={onPrevious}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                color: G.muted,
-                cursor: 'pointer',
-                padding: '4px 0',
-                whiteSpace: 'nowrap' as const,
-              }}
-            >
-              Predchádzajúce →
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div
-                style={{
-                  width: 120,
-                  height: 4,
-                  background: G.borderLight,
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  className="bar-fill"
-                  style={{
-                    width: `${progress}%`,
-                    height: '100%',
-                    background: G.blue,
-                    borderRadius: 2,
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: 12, color: G.muted }}>
-                {answered}/{total}
-              </span>
-            </div>
-            {demographics && (
-              <div style={{ fontSize: 13, color: G.muted }}>
-                {demographics.age} · {demographics.gender}
-              </div>
-            )}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowAdmin(!showAdmin)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: G.slate,
-                  cursor: 'pointer',
-                  fontSize: 18,
-                  lineHeight: 1,
-                  padding: '4px 8px',
-                }}
-              >
-                ⋯
-              </button>
-              {showAdmin && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: 36,
-                    background: G.white,
-                    border: `1px solid ${G.border}`,
-                    padding: 20,
-                    zIndex: 20,
-                    minWidth: 240,
-                    borderRadius: 6,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      color: G.muted,
-                      marginBottom: 12,
-                    }}
-                  >
-                    Admin prístup
-                  </div>
-                  <input
-                    type="password"
-                    value={pass}
-                    onChange={(e) => setPass(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && tryAdmin()}
-                    placeholder="Heslo"
-                    className={`sp-input ${passErr ? 'error' : ''}`}
-                    style={{ marginBottom: 10 }}
-                  />
-                  <button
-                    onClick={tryAdmin}
-                    className="sp-btn-primary"
-                    style={{ width: '100%', padding: '10px 0' }}
-                  >
-                    Vstúpiť
-                  </button>
-                </div>
-              )}
-            </div>
+            {predchadzajuceBtn}
+            {progressIndicator}
+            {adminMenu}
+          </div>
+        </div>
+        <div
+          className="sp-header-mobile"
+          style={{
+            maxWidth: 720,
+            margin: '0 auto',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Logo />
+            {predchadzajuceBtn}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: 16,
+            }}
+          >
+            {progressIndicator}
+            {adminMenu}
           </div>
         </div>
       </div>
@@ -2001,7 +2040,6 @@ function AdminShell({
 export default function Home() {
   const [view, setView] = useState('voter');
   const [step, setStep] = useState('poll');
-  const [demographics, setDemographics] = useState<Demographics | null>(null);
   const [polls, setPolls] = useState<Poll[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [votedAnswers, setVotedAnswers] = useState<Record<string, number>>({});
@@ -2072,7 +2110,6 @@ export default function Home() {
   }
 
   async function handleGate(age: string, gender: string) {
-    setDemographics({ age, gender });
     await handleSubmit(age, gender);
   }
 
@@ -2127,7 +2164,6 @@ export default function Home() {
   return (
     <VoterPoll
       polls={polls}
-      demographics={demographics}
       answers={answers}
       setAnswers={setAnswers}
       phones={phones}
