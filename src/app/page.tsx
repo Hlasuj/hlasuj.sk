@@ -587,15 +587,17 @@ function VoterPoll({
   onSubmit,
   onAdminAccess,
   onPrevious,
+  onProceedToDemographics,
 }: {
   polls: Poll[];
-  demographics: Demographics;
+  demographics: Demographics | null;
   onSubmit: (
     answers: Record<string, number>,
     phones: Record<string, string>
   ) => void;
   onAdminAccess: () => void;
   onPrevious: () => void;
+  onProceedToDemographics: () => void;
 }) {
   const isExpiredFallback = polls.length > 0 && polls.every((p) => p.expired);
   const active = isExpiredFallback ? polls : polls.filter((p) => p.active);
@@ -619,7 +621,6 @@ function VoterPoll({
   const phoneValid = Object.entries(phones).every(
     ([, val]) => !val || /^(\+421|0)9\d{8}$/.test(val.replace(/[\s\-]/g, ''))
   );
-  const allDone = answered === total && total > 0 && phoneValid;
   const progress = total > 0 ? (answered / total) * 100 : 0;
 
   async function tryAdmin() {
@@ -705,9 +706,11 @@ function VoterPoll({
                 {answered}/{total}
               </span>
             </div>
-            <div style={{ fontSize: 13, color: G.muted }}>
-              {demographics.age} · {demographics.gender}
-            </div>
+            {demographics && (
+              <div style={{ fontSize: 13, color: G.muted }}>
+                {demographics.age} · {demographics.gender}
+              </div>
+            )}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowAdmin(!showAdmin)}
@@ -992,21 +995,27 @@ function VoterPoll({
         {!isExpiredFallback && active.length > 0 && (
           <button
             className="sp-btn-primary"
-            disabled={!allDone}
+            disabled={answered === 0}
             onClick={() => {
-              if (!allDone) return;
-              const consentedPhones = Object.fromEntries(
-                Object.entries(phones).filter(([id]) => phoneConsent[id])
-              );
-              onSubmit(answers, consentedPhones);
+              if (answered === 0) return;
+              if (!demographics?.age || !demographics?.gender) {
+                onProceedToDemographics();
+              } else {
+                const consentedPhones = Object.fromEntries(
+                  Object.entries(phones).filter(([id]) => phoneConsent[id])
+                );
+                onSubmit(answers, consentedPhones);
+              }
             }}
             style={{ width: '100%', padding: '18px', fontSize: 15 }}
           >
-            {allDone
-              ? 'Odoslať hlasovanie →'
-              : !phoneValid
-                ? 'Opravte formát telefónneho čísla'
-                : `Odpovedzte na všetky otázky (${answered}/${total})`}
+            {answered === 0
+              ? `Odpovedzte na všetky otázky (${answered}/${total})`
+              : !demographics?.age || !demographics?.gender
+                ? 'Pokračovať →'
+                : !phoneValid
+                  ? 'Opravte formát telefónneho čísla'
+                  : 'Odoslať hlasovanie →'}
           </button>
         )}
       </div>
@@ -2126,7 +2135,7 @@ function AdminShell({
 
 export default function Home() {
   const [view, setView] = useState('voter');
-  const [step, setStep] = useState('preview');
+  const [step, setStep] = useState('poll');
   const [demographics, setDemographics] = useState<Demographics | null>(null);
   const [polls, setPolls] = useState<Poll[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
@@ -2222,21 +2231,13 @@ export default function Home() {
         votes={votes}
         onBack={() => {
           setView('voter');
-          setStep('preview');
+          setStep('poll');
         }}
         reloadPolls={reloadPolls}
       />
     );
   if (view === 'previous')
     return <PreviousPolls onBack={() => setView('voter')} />;
-  if (step === 'preview')
-    return (
-      <PollPreview
-        polls={polls}
-        onProceed={() => setStep('gate')}
-        onPrevious={() => setView('previous')}
-      />
-    );
   if (step === 'gate') {
     const activePoll = polls.find((p) => p.active);
     const pollVoteCount = activePoll
@@ -2245,7 +2246,7 @@ export default function Home() {
     return (
       <DemographicGate
         onConfirm={handleGate}
-        onPrevious={() => setStep('preview')}
+        onPrevious={() => setStep('poll')}
         voteCount={pollVoteCount}
       />
     );
@@ -2256,10 +2257,11 @@ export default function Home() {
   return (
     <VoterPoll
       polls={polls}
-      demographics={demographics!}
+      demographics={demographics}
       onSubmit={handleSubmit}
       onAdminAccess={() => setView('admin')}
       onPrevious={() => setView('previous')}
+      onProceedToDemographics={() => setStep('gate')}
     />
   );
 }
