@@ -251,157 +251,18 @@ function ProgressBar({
   );
 }
 
-function PollPreview({
-  polls,
-  onProceed,
-  onPrevious,
-}: {
-  polls: Poll[];
-  onProceed: () => void;
-  onPrevious: () => void;
-}) {
-  const isExpiredFallback = polls.length > 0 && polls.every((p) => p.expired);
-  const displayPolls = isExpiredFallback
-    ? polls
-    : polls.filter((p) => p.active);
-
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: G.bg,
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
-      <Styles />
-      <div
-        style={{
-          borderBottom: `1px solid ${G.border}`,
-          padding: '16px 40px',
-          background: G.white,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 720,
-            margin: '0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Logo />
-          <button
-            onClick={onPrevious}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              color: G.muted,
-              cursor: 'pointer',
-              padding: '4px 0',
-            }}
-          >
-            Predchádzajúce ankety →
-          </button>
-        </div>
-      </div>
-      <div
-        style={{ maxWidth: 560, margin: '0 auto', padding: '80px 24px 40px' }}
-        className="fade-in"
-      >
-        {displayPolls.length === 0 && !isExpiredFallback && (
-          <div
-            style={{ textAlign: 'center', padding: '80px 0', color: G.muted }}
-          >
-            Momentálne nie sú aktívne žiadne ankety.
-          </div>
-        )}
-        {displayPolls.map((poll) => (
-          <div key={poll.id} style={{ marginBottom: 48 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 500,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: G.blue,
-                marginBottom: 16,
-              }}
-            >
-              Krok 1 z 2
-            </div>
-            <h1
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 36,
-                fontWeight: 700,
-                color: G.ink,
-                lineHeight: 1.2,
-                marginBottom: 20,
-              }}
-            >
-              {poll.question}
-            </h1>
-            <div style={{ marginBottom: 36 }}>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: G.muted,
-                  marginBottom: 14,
-                }}
-              >
-                Možnosti
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {poll.options.map((option, oi) => (
-                  <div
-                    key={oi}
-                    style={{
-                      padding: '16px 20px',
-                      background: G.white,
-                      border: `1.5px solid ${G.border}`,
-                      textAlign: 'left',
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 15,
-                      color: G.slate,
-                      borderRadius: 4,
-                    }}
-                  >
-                    {option}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button
-              className="sp-btn-primary"
-              onClick={onProceed}
-              style={{ width: '100%', padding: '18px', fontSize: 15 }}
-            >
-              Hlasovať →
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function DemographicGate({
   onConfirm,
   onPrevious,
   voteCount,
 }: {
-  onConfirm: (age: string, gender: string) => void;
+  onConfirm: (age: string, gender: string) => void | Promise<void>;
   onPrevious: () => void;
   voteCount: number;
 }) {
   const [age, setAge] = useState<string | null>(null);
   const [gender, setGender] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const ready = age && gender;
 
   return (
@@ -551,11 +412,15 @@ function DemographicGate({
         </div>
         <button
           className="sp-btn-primary"
-          disabled={!ready}
-          onClick={() => ready && onConfirm(age!, gender!)}
+          disabled={!ready || submitting}
+          onClick={async () => {
+            if (!ready || submitting) return;
+            setSubmitting(true);
+            await onConfirm(age!, gender!);
+          }}
           style={{ width: '100%', padding: '18px', fontSize: 15 }}
         >
-          Pokračovať k ankete →
+          {submitting ? 'Odosielam...' : 'Odoslať hlasovanie →'}
         </button>
         <div
           style={{
@@ -590,7 +455,6 @@ function VoterPoll({
   setPhones,
   phoneConsent,
   setPhoneConsent,
-  onSubmit,
   onAdminAccess,
   onPrevious,
   onProceedToDemographics,
@@ -603,10 +467,6 @@ function VoterPoll({
   setPhones: (v: Record<string, string>) => void;
   phoneConsent: Record<string, boolean>;
   setPhoneConsent: (v: Record<string, boolean>) => void;
-  onSubmit: (
-    answers: Record<string, number>,
-    phones: Record<string, string>
-  ) => void;
   onAdminAccess: () => void;
   onPrevious: () => void;
   onProceedToDemographics: () => void;
@@ -1004,27 +864,15 @@ function VoterPoll({
         {!isExpiredFallback && active.length > 0 && (
           <button
             className="sp-btn-primary"
-            disabled={answered === 0}
-            onClick={() => {
-              if (answered === 0) return;
-              if (!demographics?.age || !demographics?.gender) {
-                onProceedToDemographics();
-              } else {
-                const consentedPhones = Object.fromEntries(
-                  Object.entries(phones).filter(([id]) => phoneConsent[id])
-                );
-                onSubmit(answers, consentedPhones);
-              }
-            }}
+            disabled={answered === 0 || !phoneValid}
+            onClick={onProceedToDemographics}
             style={{ width: '100%', padding: '18px', fontSize: 15 }}
           >
             {answered === 0
               ? `Odpovedzte na všetky otázky (${answered}/${total})`
-              : !demographics?.age || !demographics?.gender
-                ? 'Pokračovať →'
-                : !phoneValid
-                  ? 'Opravte formát telefónneho čísla'
-                  : 'Odoslať hlasovanie →'}
+              : !phoneValid
+                ? 'Opravte formát telefónneho čísla'
+                : 'Pokračovať →'}
           </button>
         )}
       </div>
@@ -2188,10 +2036,10 @@ export default function Home() {
   }, []);
 
   // Fixed N+1: fire all vote requests concurrently with Promise.all
-  async function handleSubmit(
-    answers: Record<string, number>,
-    phones: Record<string, string>
-  ) {
+  async function handleSubmit(age: string, gender: string) {
+    const consentedPhones = Object.fromEntries(
+      Object.entries(phones).filter(([id]) => phoneConsent[id])
+    );
     await Promise.all(
       Object.entries(answers).map(([pollId, optionIndex]) => {
         const p = polls.find((p) => p.id === pollId) as Poll;
@@ -2201,10 +2049,12 @@ export default function Home() {
           body: JSON.stringify({
             poll_id: pollId,
             option_id: p.optionIds?.[optionIndex] ?? '',
-            age_group: demographics?.age,
-            gender: demographics?.gender,
-            phone: phones[pollId] || null,
-            phone_consent_at: phones[pollId] ? new Date().toISOString() : null,
+            age_group: age,
+            gender: gender,
+            phone: consentedPhones[pollId] || null,
+            phone_consent_at: consentedPhones[pollId]
+              ? new Date().toISOString()
+              : null,
           }),
         });
       })
@@ -2213,9 +2063,9 @@ export default function Home() {
     setStep('results');
   }
 
-  function handleGate(age: string, gender: string) {
+  async function handleGate(age: string, gender: string) {
     setDemographics({ age, gender });
-    setStep('poll');
+    await handleSubmit(age, gender);
   }
 
   if (loading)
@@ -2276,7 +2126,6 @@ export default function Home() {
       setPhones={setPhones}
       phoneConsent={phoneConsent}
       setPhoneConsent={setPhoneConsent}
-      onSubmit={handleSubmit}
       onAdminAccess={() => setView('admin')}
       onPrevious={() => setView('previous')}
       onProceedToDemographics={() => setStep('gate')}
