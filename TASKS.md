@@ -41,16 +41,6 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 
 ---
 
-## In Progress (Testing)
-
-- **Issue #20** — Question-first voting flow (Krok 1: preview → Krok 2: demographics → Vote)
-  - Created PollPreview component showing poll question + options (read-only)
-  - Changed initial step from 'gate' to 'preview'
-  - Updated DemographicGate to show "Krok 2 z 2" with back button
-  - Status: Awaiting testing before closing
-
----
-
 ## Completed
 
 - Husky + lint-staged + Prettier + Jest pre-commit hooks
@@ -70,3 +60,4 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - Fixed previous-polls "1970 date" bug (issue #18) — added null guard for `poll.ends_at` in `src/components/PreviousPolls.tsx`
 - Fixed typo on /o-projekte (issue #19) — "nezboiera" → "nezbiera"
 - Added vote count social proof to demographics gate (issue #21) — displays "X Slovákov sa vyjadrilo..." before age/gender selection
+- Reordered voting flow to vote-first (issue #20) — Krok 1: poll with clickable answers → Krok 2: demographics, submits directly (no redundant return-to-poll step). Also lifted answers/phones state to parent to survive step transitions, and fixed scroll position resetting on step change.
