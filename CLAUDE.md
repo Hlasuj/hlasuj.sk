@@ -21,6 +21,8 @@ Required in `.env.local` and Vercel dashboard:
 - `ADMIN_PASSWORD` — plain-text; hashed to SHA-256 for cookie comparison
 - `CRON_SECRET` — random secret; Vercel sends it as `Authorization: Bearer <secret>` on cron invocations
 
+**Local `.env.local` is currently missing** — `npm run build`/`npm run dev` fail locally without it, which forces every UI change to go through a full commit → push → wait for Vercel → test-on-phone cycle instead of local testing. Set this up (copy values from the Vercel dashboard) to cut iteration time and commit count dramatically on UI/UX work.
+
 ## Admin Auth
 
 Hidden `⋯` menu → `POST /api/admin/login` → sets `admin_token` httpOnly cookie (`sha256(ADMIN_PASSWORD)`, 24h, `sameSite: strict`, timing-safe compare via `checkAdminAuth()` in `src/lib/auth.ts`).
@@ -88,6 +90,12 @@ You've authorized me to use **close-issue** proactively: when you say "issue #17
 6. **Testing** — User tests before closing issue
 
 This prevents rework and ensures we build the right thing. For simple bug fixes (typos, null guards), proceed directly to implementation.
+
+## Commit Hygiene
+
+- **Don't split a fix and its TASKS.md/issue-close update into two commits** unless real time passed between them (e.g. user asked to test first). If I'm marking something done in the same turn as the code change, fold both into one commit.
+- **Create the GitHub issue before referencing its number in a commit message**, not after — don't guess/reserve numbers.
+- Prefer testing locally (see Env Vars above) over push-to-Vercel-to-test cycles; each such cycle tends to produce its own commit even for a one-line tweak.
 
 ## Agent Behavior
 
