@@ -18,8 +18,6 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - [ ] **Split `src/app/page.tsx`** (issue #10) — currently ~800 lines (voter UI + admin shell in one client component). Split into separate voter and admin components when it grows further.
 - [ ] **Paginate `GET /api/votes`** (issue #11) — no pagination currently; will be slow on large vote counts.
 - [ ] **Fix `PUT /api/polls/[id]`** (issue #12) — `options` update does full delete-and-reinsert, so option IDs change on every save. Consider upsert by position instead.
-- [ ] **Fix previous-polls "1970 date" bug** (issue #18) — archive shows "Skončila 1. januára 1970" for polls with null `ends_at`. Add null guard in `src/components/PreviousPolls.tsx` to omit date or show fallback text.
-- [ ] **Fix typo on /o-projekte** (issue #19) — "nezboiera" should be "nezbiera" in `src/app/o-projekte/page.tsx`.
 
 ### Features
 
@@ -60,3 +58,5 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - SEO: OG tags, Twitter card, `robots.txt`, `sitemap.xml`, dynamic OG image (`/opengraph-image`), per-page titles + descriptions, per-page canonical URLs, per-page OG metadata overrides on all subpages
 - Supabase project transferred to new account
 - frontend-test skill fixed (tool name prefix `mcp__Claude_in_Chrome__` → `mcp__claude-in-chrome__`)
+- Fixed previous-polls "1970 date" bug (issue #18) — added null guard for `poll.ends_at` in `src/components/PreviousPolls.tsx`
+- Fixed typo on /o-projekte (issue #19) — "nezboiera" → "nezbiera"
