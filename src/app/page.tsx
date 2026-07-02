@@ -353,8 +353,8 @@ function DemographicGate({
             >
               <span style={{ fontSize: 18 }}>📊</span>
               <span>
-                Už {voteCount.toLocaleString('sk-SK')} Slovákov si myslí na
-                tejto platforme
+                Už {voteCount.toLocaleString('sk-SK')} Slovákov sa vyjadrilo k
+                tejto otázke
               </span>
             </p>
           )}
