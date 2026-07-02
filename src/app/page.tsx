@@ -251,6 +251,146 @@ function ProgressBar({
   );
 }
 
+function PollPreview({
+  polls,
+  onProceed,
+  onPrevious,
+}: {
+  polls: Poll[];
+  onProceed: () => void;
+  onPrevious: () => void;
+}) {
+  const isExpiredFallback = polls.length > 0 && polls.every((p) => p.expired);
+  const displayPolls = isExpiredFallback
+    ? polls
+    : polls.filter((p) => p.active);
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: G.bg,
+        fontFamily: "'DM Sans', sans-serif",
+      }}
+    >
+      <Styles />
+      <div
+        style={{
+          borderBottom: `1px solid ${G.border}`,
+          padding: '16px 40px',
+          background: G.white,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 720,
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Logo />
+          <button
+            onClick={onPrevious}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              color: G.muted,
+              cursor: 'pointer',
+              padding: '4px 0',
+            }}
+          >
+            Predchádzajúce ankety →
+          </button>
+        </div>
+      </div>
+      <div
+        style={{ maxWidth: 560, margin: '0 auto', padding: '80px 24px 40px' }}
+        className="fade-in"
+      >
+        {displayPolls.length === 0 && !isExpiredFallback && (
+          <div
+            style={{ textAlign: 'center', padding: '80px 0', color: G.muted }}
+          >
+            Momentálne nie sú aktívne žiadne ankety.
+          </div>
+        )}
+        {displayPolls.map((poll) => (
+          <div key={poll.id} style={{ marginBottom: 48 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: G.blue,
+                marginBottom: 16,
+              }}
+            >
+              Krok 1 z 2
+            </div>
+            <h1
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 36,
+                fontWeight: 700,
+                color: G.ink,
+                lineHeight: 1.2,
+                marginBottom: 20,
+              }}
+            >
+              {poll.question}
+            </h1>
+            <div style={{ marginBottom: 36 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: G.muted,
+                  marginBottom: 14,
+                }}
+              >
+                Možnosti
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {poll.options.map((option, oi) => (
+                  <div
+                    key={oi}
+                    style={{
+                      padding: '16px 20px',
+                      background: G.white,
+                      border: `1.5px solid ${G.border}`,
+                      textAlign: 'left',
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 15,
+                      color: G.slate,
+                      borderRadius: 4,
+                    }}
+                  >
+                    {option}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              className="sp-btn-primary"
+              onClick={onProceed}
+              style={{ width: '100%', padding: '18px', fontSize: 15 }}
+            >
+              Hlasovať →
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DemographicGate({
   onConfirm,
   onPrevious,
@@ -302,7 +442,7 @@ function DemographicGate({
               padding: '4px 0',
             }}
           >
-            Predchádzajúce ankety →
+            ← Späť na anketu
           </button>
         </div>
       </div>
@@ -321,7 +461,7 @@ function DemographicGate({
               marginBottom: 16,
             }}
           >
-            Krok 1 z 2
+            Krok 2 z 2
           </div>
           <h1
             style={{
@@ -1986,7 +2126,7 @@ function AdminShell({
 
 export default function Home() {
   const [view, setView] = useState('voter');
-  const [step, setStep] = useState('gate');
+  const [step, setStep] = useState('preview');
   const [demographics, setDemographics] = useState<Demographics | null>(null);
   const [polls, setPolls] = useState<Poll[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
@@ -2082,13 +2222,21 @@ export default function Home() {
         votes={votes}
         onBack={() => {
           setView('voter');
-          setStep('gate');
+          setStep('preview');
         }}
         reloadPolls={reloadPolls}
       />
     );
   if (view === 'previous')
     return <PreviousPolls onBack={() => setView('voter')} />;
+  if (step === 'preview')
+    return (
+      <PollPreview
+        polls={polls}
+        onProceed={() => setStep('gate')}
+        onPrevious={() => setView('previous')}
+      />
+    );
   if (step === 'gate') {
     const activePoll = polls.find((p) => p.active);
     const pollVoteCount = activePoll
@@ -2097,7 +2245,7 @@ export default function Home() {
     return (
       <DemographicGate
         onConfirm={handleGate}
-        onPrevious={() => setView('previous')}
+        onPrevious={() => setStep('preview')}
         voteCount={pollVoteCount}
       />
     );
