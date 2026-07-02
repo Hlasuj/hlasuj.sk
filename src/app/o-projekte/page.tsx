@@ -1,6 +1,10 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'O projekte – Hlasuj.sk' };
+export const metadata = {
+  title: 'O projekte',
+  description:
+    'Hlasuj.sk je anonymná platforma pre slovenské ankety. Zistite, prečo vznikla a ako funguje ochrana vášho súkromia.',
+};
 
 const S = {
   page: {
@@ -104,9 +108,3 @@ export default function OProjekte() {
         <p style={S.p}>
           Platforma nezboiera IP adresy ani cookies. Zaznamenávame len vekovú
           skupinu, pohlavie, krajinu (odvodenú zo servera bez uloženia IP) a typ
-          zariadenia. Hlasovanie trvá menej ako minútu a nevyžaduje žiadny účet.
-        </p>
-      </div>
-    </div>
-  );
-}

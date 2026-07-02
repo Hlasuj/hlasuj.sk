@@ -1,6 +1,10 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Kontakt – Hlasuj.sk' };
+export const metadata = {
+  title: 'Kontakt',
+  description:
+    'Máte otázky alebo návrhy k hlasuj.sk? Napíšte nám — radi si vypočujeme váš názor.',
+};
 
 const S = {
   page: {
@@ -184,10 +188,4 @@ export default function Kontakt() {
               marginTop: 12,
             }}
           >
-            Formulár je momentálne nefunkčný — používajte priamy e-mail vyššie.
-          </p>
-        </form>
-      </div>
-    </div>
-  );
-}
+            Formulár je momentálne nefunkčn�

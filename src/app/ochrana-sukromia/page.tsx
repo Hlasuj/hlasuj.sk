@@ -1,6 +1,10 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Ochrana súkromia – Hlasuj.sk' };
+export const metadata = {
+  title: 'Ochrana súkromia',
+  description:
+    'Informácie o ochrane osobných údajov na hlasuj.sk. Nezbierame cookies ani IP adresy — vaše hlasovanie je plne anonymné.',
+};
 
 const S = {
   page: {
@@ -155,10 +159,4 @@ export default function OchranaSukromia() {
 
         <h2 style={S.h2}>Kontakt</h2>
         <p style={S.p}>
-          Otázky týkajúce sa ochrany osobných údajov zasielajte na:{' '}
-          <span style={{ color: '#2563EB' }}>info@hlasuj.sk</span>
-        </p>
-      </div>
-    </div>
-  );
-}
+          Otázky týkajúce sa ochrany osobných �
