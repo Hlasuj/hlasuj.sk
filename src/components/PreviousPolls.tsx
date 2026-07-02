@@ -162,21 +162,16 @@ function PollCard({ poll }: { poll: PreviousPoll }) {
   }
 
   // When votes are loaded use them for filtering; fall back to aggregate counts from API
-  const rows =
-    votes !== null
-      ? calcCounts(poll.poll_options, votes, gender, age)
-      : poll.poll_options.map((o) => ({
-          text: o.text,
-          count: o.votes,
-          pct:
-            poll.poll_options.reduce((s, x) => s + x.votes, 0) === 0
-              ? 0
-              : Math.round(
-                  (o.votes /
-                    poll.poll_options.reduce((s, x) => s + x.votes, 0)) *
-                    100
-                ),
-        }));
+  const rows = (() => {
+    if (votes !== null)
+      return calcCounts(poll.poll_options, votes, gender, age);
+    const totalVotes = poll.poll_options.reduce((s, x) => s + x.votes, 0);
+    return poll.poll_options.map((o) => ({
+      text: o.text,
+      count: o.votes,
+      pct: totalVotes === 0 ? 0 : Math.round((o.votes / totalVotes) * 100),
+    }));
+  })();
 
   const endDate = new Date(poll.ends_at).toLocaleDateString('sk-SK', {
     day: 'numeric',

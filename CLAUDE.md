@@ -4,6 +4,10 @@
 
 Always work from `C:\Users\Admin\hlasuj-sk`.
 
+## Task Backlog
+
+See [TASKS.md](./TASKS.md) for the full backlog — pending features, SEO improvements, code quality issues, and completed work.
+
 ## Pre-commit
 
 Husky blocks commits if lint or tests fail. Order: `lint-staged` (ESLint --fix) → Prettier → `npm test`.
