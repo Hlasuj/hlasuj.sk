@@ -56,6 +56,26 @@ Hidden `⋯` menu → `POST /api/admin/login` → sets `admin_token` httpOnly co
 - /optimize — performance, bundle size, and code quality fixes
 - /format — Prettier + ESLint auto-fix
 
+## Global Issue Management Skills
+
+Three reusable global skills for managing GitHub issues across any project:
+
+- **critical-review** — Visit live site, identify issues/bugs/UX improvements, create GitHub issues with implementation prompts (manual trigger)
+- **batch-create-issues** — Create multiple GitHub issues at once with descriptions and implementation prompts (manual trigger)
+- **close-issue** — Close a GitHub issue and update TASKS.md completion tracking (**proactive** — I do this automatically when you mention an issue is done)
+
+See `.claude/skills/README.md` for detailed usage and template prompts.
+
+### When to use
+
+- **critical-review**: After launch or during planning to capture all issues in one pass
+- **batch-create-issues**: You have a list of issues ready to file; create them all at once
+- **close-issue**: An issue is implemented and tested; mention it and I'll close the issue + update TASKS.md
+
+### Proactive authorization
+
+You've authorized me to use **close-issue** proactively: when you say "issue #17 is done" or "we fixed the contact form", I will automatically close the issue and update TASKS.md without asking.
+
 ## Agent Behavior
 
 After every task, always give a code change summary the user can learn from:

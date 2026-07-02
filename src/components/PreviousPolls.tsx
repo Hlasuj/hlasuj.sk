@@ -173,11 +173,13 @@ function PollCard({ poll }: { poll: PreviousPoll }) {
     }));
   })();
 
-  const endDate = new Date(poll.ends_at).toLocaleDateString('sk-SK', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const endDate = poll.ends_at
+    ? new Date(poll.ends_at).toLocaleDateString('sk-SK', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
 
   return (
     <div style={{ borderBottom: '1px solid #D1D9E6' }}>
@@ -209,15 +211,17 @@ function PollCard({ poll }: { poll: PreviousPoll }) {
           >
             {poll.question}
           </div>
-          <div
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              color: '#444',
-            }}
-          >
-            Skončila {endDate}
-          </div>
+          {endDate && (
+            <div
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 11,
+                color: '#444',
+              }}
+            >
+              Skončila {endDate}
+            </div>
+          )}
         </div>
         <span
           style={{

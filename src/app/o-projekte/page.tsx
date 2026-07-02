@@ -113,7 +113,7 @@ export default function OProjekte() {
           spoločnosti.
         </p>
         <p style={S.p}>
-          Platforma nezboiera IP adresy ani cookies. Zaznamenávame len vekovú
+          Platforma nezbiera IP adresy ani cookies. Zaznamenávame len vekovú
           skupinu, pohlavie, krajinu (odvodenú zo servera bez uloženia IP) a typ
           zariadenia. Hlasovanie trvá menej ako minútu a nevyžaduje žiadny účet.
         </p>
