@@ -159,4 +159,10 @@ export default function OchranaSukromia() {
 
         <h2 style={S.h2}>Kontakt</h2>
         <p style={S.p}>
-          Otázky týkajúce sa ochrany osobných �
+          Otázky týkajúce sa ochrany osobných údajov zasielajte na:{' '}
+          <span style={{ color: '#2563EB' }}>info@hlasuj.sk</span>
+        </p>
+      </div>
+    </div>
+  );
+}

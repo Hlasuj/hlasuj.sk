@@ -188,4 +188,10 @@ export default function Kontakt() {
               marginTop: 12,
             }}
           >
-            Formulár je momentálne nefunkčn�
+            Formulár je momentálne nefunkčný — používajte priamy e-mail vyššie.
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
