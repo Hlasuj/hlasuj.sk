@@ -2089,14 +2089,19 @@ export default function Home() {
     );
   if (view === 'previous')
     return <PreviousPolls onBack={() => setView('voter')} />;
-  if (step === 'gate')
+  if (step === 'gate') {
+    const activePoll = polls.find((p) => p.active);
+    const pollVoteCount = activePoll
+      ? votes.filter((v) => v.pollId === activePoll.id).length
+      : 0;
     return (
       <DemographicGate
         onConfirm={handleGate}
         onPrevious={() => setView('previous')}
-        voteCount={votes.length}
+        voteCount={pollVoteCount}
       />
     );
+  }
   if (step === 'results')
     return <LiveResults polls={polls} votedAnswers={votedAnswers} />;
   if (step === 'done') return <ThankYou />;

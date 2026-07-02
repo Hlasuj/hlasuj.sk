@@ -30,6 +30,7 @@ Live at [hlasuj-sk.vercel.app](https://hlasuj-sk.vercel.app). Commits via CMD: `
 - [ ] **Email/RSS digest** (issue #24) — opt-in notification (email or RSS feed) for new polls and results.
 - [ ] **Embeddable results widget** (issue #26) — iframe-friendly results view for media embed distribution.
 - [ ] **Surface methodology** (issue #27) — make poll topic selection process and cadence more prominent on /o-projekte (not just in FAQ).
+- [ ] **Display site-wide vote count** (issue #28) — show all-time total votes (across all polls) in addition to current poll count. Five placement options: below poll count, footer, header badge, results page, or /o-projekte. Decide on best placement and implement.
 
 ### Tooling
 
