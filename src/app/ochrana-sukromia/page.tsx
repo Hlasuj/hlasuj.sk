@@ -4,6 +4,13 @@ export const metadata = {
   title: 'Ochrana súkromia',
   description:
     'Informácie o ochrane osobných údajov na hlasuj.sk. Nezbierame cookies ani IP adresy — vaše hlasovanie je plne anonymné.',
+  alternates: { canonical: '/ochrana-sukromia' },
+  openGraph: {
+    title: 'Ochrana súkromia | hlasuj.sk',
+    description:
+      'Informácie o ochrane osobných údajov na hlasuj.sk. Nezbierame cookies ani IP adresy — vaše hlasovanie je plne anonymné.',
+    url: '/ochrana-sukromia',
+  },
 };
 
 const S = {

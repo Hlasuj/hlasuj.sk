@@ -4,6 +4,13 @@ export const metadata = {
   title: 'Kontakt',
   description:
     'Máte otázky alebo návrhy k hlasuj.sk? Napíšte nám — radi si vypočujeme váš názor.',
+  alternates: { canonical: '/kontakt' },
+  openGraph: {
+    title: 'Kontakt | hlasuj.sk',
+    description:
+      'Máte otázky alebo návrhy k hlasuj.sk? Napíšte nám — radi si vypočujeme váš názor.',
+    url: '/kontakt',
+  },
 };
 
 const S = {

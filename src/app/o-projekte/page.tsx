@@ -4,6 +4,13 @@ export const metadata = {
   title: 'O projekte',
   description:
     'Hlasuj.sk je anonymná platforma pre slovenské ankety. Zistite, prečo vznikla a ako funguje ochrana vášho súkromia.',
+  alternates: { canonical: '/o-projekte' },
+  openGraph: {
+    title: 'O projekte | hlasuj.sk',
+    description:
+      'Hlasuj.sk je anonymná platforma pre slovenské ankety. Zistite, prečo vznikla a ako funguje ochrana vášho súkromia.',
+    url: '/o-projekte',
+  },
 };
 
 const S = {
