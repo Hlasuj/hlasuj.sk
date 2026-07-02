@@ -584,6 +584,12 @@ function DemographicGate({
 function VoterPoll({
   polls,
   demographics,
+  answers,
+  setAnswers,
+  phones,
+  setPhones,
+  phoneConsent,
+  setPhoneConsent,
   onSubmit,
   onAdminAccess,
   onPrevious,
@@ -591,6 +597,12 @@ function VoterPoll({
 }: {
   polls: Poll[];
   demographics: Demographics | null;
+  answers: Record<string, number>;
+  setAnswers: (v: Record<string, number>) => void;
+  phones: Record<string, string>;
+  setPhones: (v: Record<string, string>) => void;
+  phoneConsent: Record<string, boolean>;
+  setPhoneConsent: (v: Record<string, boolean>) => void;
   onSubmit: (
     answers: Record<string, number>,
     phones: Record<string, string>
@@ -601,9 +613,6 @@ function VoterPoll({
 }) {
   const isExpiredFallback = polls.length > 0 && polls.every((p) => p.expired);
   const active = isExpiredFallback ? polls : polls.filter((p) => p.active);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [phones, setPhones] = useState<Record<string, string>>({});
-  const [phoneConsent, setPhoneConsent] = useState<Record<string, boolean>>({});
   const [phoneErrors, setPhoneErrors] = useState<Record<string, string>>({});
   const [showAdmin, setShowAdmin] = useState(false);
 
@@ -2141,6 +2150,9 @@ export default function Home() {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [votedAnswers, setVotedAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [phones, setPhones] = useState<Record<string, string>>({});
+  const [phoneConsent, setPhoneConsent] = useState<Record<string, boolean>>({});
 
   // useCallback — stable reference so it can safely be passed as a prop
   const reloadPolls = useCallback(async (admin = false) => {
@@ -2258,6 +2270,12 @@ export default function Home() {
     <VoterPoll
       polls={polls}
       demographics={demographics}
+      answers={answers}
+      setAnswers={setAnswers}
+      phones={phones}
+      setPhones={setPhones}
+      phoneConsent={phoneConsent}
+      setPhoneConsent={setPhoneConsent}
       onSubmit={handleSubmit}
       onAdminAccess={() => setView('admin')}
       onPrevious={() => setView('previous')}
