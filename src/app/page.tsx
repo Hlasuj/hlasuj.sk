@@ -254,9 +254,11 @@ function ProgressBar({
 function DemographicGate({
   onConfirm,
   onPrevious,
+  voteCount,
 }: {
   onConfirm: (age: string, gender: string) => void;
   onPrevious: () => void;
+  voteCount: number;
 }) {
   const [age, setAge] = useState<string | null>(null);
   const [gender, setGender] = useState<string | null>(null);
@@ -337,6 +339,25 @@ function DemographicGate({
             Žiadne osobné údaje. Tieto informácie nám pomáhajú pochopiť, čo si
             myslia rôzne skupiny Slovákov.
           </p>
+          {voteCount > 0 && (
+            <p
+              style={{
+                marginTop: 20,
+                fontSize: 13,
+                fontWeight: 500,
+                color: G.blue,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 18 }}>📊</span>
+              <span>
+                Už {voteCount.toLocaleString('sk-SK')} Slovákov si myslí na
+                tejto platforme
+              </span>
+            </p>
+          )}
         </div>
         <div style={{ marginBottom: 36 }}>
           <div
@@ -2073,6 +2094,7 @@ export default function Home() {
       <DemographicGate
         onConfirm={handleGate}
         onPrevious={() => setView('previous')}
+        voteCount={votes.length}
       />
     );
   if (step === 'results')
