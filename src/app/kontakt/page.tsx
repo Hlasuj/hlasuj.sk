@@ -173,16 +173,41 @@ export default function Kontakt() {
 
         <form>
           <div>
-            <label style={S.fieldLabel}>Meno</label>
-            <input type="text" placeholder="Ján Novák" style={S.input} />
+            <label htmlFor="contact-name" style={S.fieldLabel}>
+              Meno
+            </label>
+            <input
+              id="contact-name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              placeholder="Ján Novák"
+              style={S.input}
+            />
           </div>
           <div>
-            <label style={S.fieldLabel}>E-mail</label>
-            <input type="email" placeholder="jan@example.sk" style={S.input} />
+            <label htmlFor="contact-email" style={S.fieldLabel}>
+              E-mail
+            </label>
+            <input
+              id="contact-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="jan@example.sk"
+              style={S.input}
+            />
           </div>
           <div>
-            <label style={S.fieldLabel}>Správa</label>
-            <textarea placeholder="Vaša správa..." style={S.textarea} />
+            <label htmlFor="contact-message" style={S.fieldLabel}>
+              Správa
+            </label>
+            <textarea
+              id="contact-message"
+              name="message"
+              placeholder="Vaša správa..."
+              style={S.textarea}
+            />
           </div>
           <button type="submit" style={S.btn}>
             Odoslať správu
